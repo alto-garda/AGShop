@@ -1,11 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  UserRound,
-  Mail,
-  LogOut,
-} from "lucide-react";
+import { UserRound, Mail, LogOut } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 
@@ -14,14 +11,25 @@ import { Card } from "@/components/ui/card";
 
 export default function ProfiloPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      setEmail(user?.email ?? "");
+    }
+
+    load();
+  }, []);
 
   async function logout() {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
   }
-
-  const user = supabase.auth.getUser();
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-5">
@@ -43,15 +51,13 @@ export default function ProfiloPage() {
             <Mail className="text-[#1668E8]" />
 
             <div>
-
               <p className="text-xs text-slate-500">
                 Email
               </p>
 
               <p className="font-medium">
-                {(await user).data.user?.email}
+                {email}
               </p>
-
             </div>
 
           </div>
