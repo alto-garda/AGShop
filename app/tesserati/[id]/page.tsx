@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 
@@ -8,9 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 type Props = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 export default async function TesseratoPage({ params }: Props) {
@@ -30,7 +28,7 @@ export default async function TesseratoPage({ params }: Props) {
       <Link href="/tesserati">
         <Button variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna ai Tesserati
+          Torna
         </Button>
       </Link>
 
@@ -43,43 +41,30 @@ export default async function TesseratoPage({ params }: Props) {
         <div className="mt-6 space-y-5">
 
           <div>
-            <p className="text-xs text-slate-500">
-              Nome
-            </p>
-
-            <p className="font-medium">
-              {data.nome}
-            </p>
+            <p className="text-xs text-slate-500">Nome</p>
+            <p>{data.nome}</p>
           </div>
 
           <div>
-            <p className="text-xs text-slate-500">
-              Cognome
-            </p>
-
-            <p className="font-medium">
-              {data.cognome}
-            </p>
+            <p className="text-xs text-slate-500">Cognome</p>
+            <p>{data.cognome}</p>
           </div>
 
           <div>
-            <p className="text-xs text-slate-500">
-              Data di nascita
-            </p>
-
-            <p className="font-medium">
-              {data.data_nascita ?? "-"}
-            </p>
+            <p className="text-xs text-slate-500">Data nascita</p>
+            <p>{data.data_nascita ?? "-"}</p>
           </div>
 
         </div>
 
       </Card>
 
-      <Button className="h-14 justify-start rounded-2xl bg-[#1668E8]">
-        <Pencil className="mr-3 h-5 w-5" />
-        Modifica
-      </Button>
+      <Link href={`/tesserati/${id}/modifica`}>
+        <Button className="h-14 w-full justify-start rounded-2xl bg-[#1668E8]">
+          <Pencil className="mr-3 h-5 w-5" />
+          Modifica
+        </Button>
+      </Link>
 
       <Button
         variant="destructive"
