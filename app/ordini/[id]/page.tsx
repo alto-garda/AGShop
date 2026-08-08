@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ShoppingCart,
   CircleDashed,
+  CheckCircle2,
 
 } from "lucide-react";
 
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SegnaPagato } from "@/components/ordini/SegnaPagato";
 import { GestisciConsegna } from "@/components/ordini/GestisciConsegna";
+import { CambiaStatoOrdine } from "@/components/ordini/CambiaStatoOrdine";
 
 type Props = {
   params: Promise<{
