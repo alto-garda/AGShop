@@ -85,6 +85,54 @@ export default async function ArticoliPage() {
     );
   }
 
+  const articoloIds = (articoli ?? []).map(
+    (articolo) => articolo.id
+  );
+
+  const { data: taglieData, error: taglieError } =
+    articoloIds.length > 0
+      ? await supabase
+          .from("articolo_taglie")
+          .select("articolo_id, taglia, giacenza")
+          .in("articolo_id", articoloIds)
+      : { data: [], error: null };
+
+  if (taglieError) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Card className="rounded-3xl border-2 p-6 text-center">
+          <p className="font-semibold">
+            Errore nel caricamento delle giacenze
+          </p>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            {taglieError.message}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  const giacenzePerArticolo = new Map<string, number>();
+
+  for (const riga of taglieData ?? []) {
+    giacenzePerArticolo.set(
+      riga.articolo_id,
+      (giacenzePerArticolo.get(riga.articolo_id) ?? 0) +
+        Number(riga.giacenza ?? 0)
+    );
+  }
+
+  const articoliConGiacenza = (articoli ?? []).map(
+    (articolo) => ({
+      ...articolo,
+      giacenzaReale:
+        (giacenzePerArticolo.has(articolo.id)
+          ? giacenzePerArticolo.get(articolo.id)
+          : Number(articolo.giacenza ?? 0)) ?? 0,
+    })
+  );
+
   const gruppi = categorie.map((categoria) => ({
     ...categoria,
     articoli:
@@ -153,7 +201,11 @@ export default async function ArticoliPage() {
                         </p>
 
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                          {articolo.giacenza} disponibili
+                          {(
+      giacenzePerArticolo.has(articolo.id)
+        ? giacenzePerArticolo.get(articolo.id) ?? 0
+        : Number(articolo.giacenza ?? 0)
+    )} disponibili
                         </p>
 
                       </div>
