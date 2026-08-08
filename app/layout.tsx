@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,27 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: "AG Shop",
   description: "Magazzino Alto Garda",
+  applicationName: "AG Shop",
+  manifest: "/manifest.webmanifest",
+
+  appleWebApp: {
+    capable: true,
+    title: "AG Shop",
+    statusBarStyle: "black-translucent",
+  },
+
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1668E8",
 };
 
 export default function RootLayout({
