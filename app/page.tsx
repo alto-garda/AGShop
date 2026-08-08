@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-[calc(100dvh-68px)] flex-col justify-center gap-3 overflow-hidden">
+    <div className="flex h-[calc(100dvh-68px)] flex-col gap-3 overflow-hidden">
 
       <div className="flex items-center gap-3">
         <Hand className="h-8 w-8 text-[#1668E8]" />
@@ -50,7 +50,6 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
 
         <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-
           <div className="p-4">
 
             <div className="flex flex-col items-center gap-1">
@@ -68,11 +67,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="h-2 rounded-b-2xl bg-[#FFD339]" />
-
         </Card>
 
         <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-
           <div className="p-4">
 
             <div className="flex flex-col items-center gap-1">
@@ -90,7 +87,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="h-2 rounded-b-2xl bg-[#FFD339]" />
-
         </Card>
 
       </div>
