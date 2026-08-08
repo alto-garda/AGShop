@@ -210,10 +210,29 @@ export default function NuovoOrdinePage() {
     (k) => k.id === kitId
   );
 
-  const totale = righe.reduce(
-    (sum, riga) => sum + riga.prezzo * riga.quantita,
-    0
-  );
+  const totale = righe.reduce((sum, riga) => {
+    if (riga.kitId) {
+      return sum;
+    }
+
+    return sum + riga.prezzo * riga.quantita;
+  }, 0);
+
+  const totaleKit = Array.from(
+    new Set(
+      righe
+        .filter((riga) => riga.kitId)
+        .map((riga) => riga.kitId)
+    )
+  ).reduce((sum, kitId) => {
+    const selectedKit = kit.find(
+      (item) => item.id === kitId
+    );
+
+    return sum + Number(selectedKit?.prezzo ?? 0);
+  }, 0);
+
+  const totaleOrdine = totale + totaleKit;
 
   function aggiungiSingolo() {
     if (!articolo) {
@@ -824,7 +843,7 @@ export default function NuovoOrdinePage() {
             </span>
 
             <span className="text-2xl font-bold">
-              €{totale.toFixed(2)}
+              €{totaleOrdine.toFixed(2)}
             </span>
           </div>
 
