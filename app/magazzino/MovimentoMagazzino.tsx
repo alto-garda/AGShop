@@ -112,44 +112,19 @@ export default function MovimentoMagazzino({
     setSaving(true);
 
     try {
-      const nuovaGiacenza =
-        tipo === "carico"
-          ? disponibilita + qty
-          : disponibilita - qty;
+      const { error } = await supabase.rpc(
+        "movimento_magazzino",
+        {
+          p_articolo_id: articoloId,
+          p_taglia: taglia || null,
+          p_tipo: tipo,
+          p_quantita: qty,
+          p_nota: nota.trim() || null,
+        }
+      );
 
-      if (taglie.length > 0) {
-        const { error } = await supabase
-          .from("articolo_taglie")
-          .update({
-            giacenza: nuovaGiacenza,
-          })
-          .eq("articolo_id", articoloId)
-          .eq("taglia", taglia);
-
-        if (error) throw new Error(error.message);
-      } else {
-        const { error } = await supabase
-          .from("articoli")
-          .update({
-            giacenza: nuovaGiacenza,
-          })
-          .eq("id", articoloId);
-
-        if (error) throw new Error(error.message);
-      }
-
-      const { error: movimentoError } = await supabase
-        .from("movimenti_magazzino")
-        .insert({
-          articolo_id: articoloId,
-          taglia: taglia || null,
-          tipo,
-          quantita: qty,
-          nota: nota.trim() || null,
-        });
-
-      if (movimentoError) {
-        throw new Error(movimentoError.message);
+      if (error) {
+        throw new Error(error.message);
       }
 
       router.push("/");
