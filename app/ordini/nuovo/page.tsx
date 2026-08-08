@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, ShoppingCart, X } from "lucide-react";
 
-import { createClient } from "@/lib/supabase-browser";
+import { supabase } from "@/lib/supabase";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,7 @@ type Tesserato = {
   id: string;
   nome: string;
   cognome: string;
+  data_nascita: string | null;
 };
 
 type Articolo = {
@@ -29,52 +30,107 @@ type Taglia = {
   giacenza: number;
 };
 
-type Riga = {
+type Kit = {
+  id: string;
+  nome: string;
+  prezzo: number;
+};
+
+type KitRiga = {
+  id: string;
   articolo_id: string;
+  quantita: number;
+  tipo_taglia: "abbigliamento" | "calzettoni" | "nessuna";
+  articoli: {
+    id: string;
+    nome: string;
+    categoria: string;
+  } | null;
+};
+
+type Riga = {
+  id: string;
+  articoloId: string;
+  nome: string;
   taglia: string | null;
   quantita: number;
+  prezzo: number;
+  kitId?: string;
+  kitNome?: string;
 };
+
+const TAGLIE_ABBIGLIAMENTO = [
+  "2XS",
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "2XL",
+];
+
+const TAGLIE_CALZETTONI = [
+  "KID",
+  "BOY",
+  "MAN",
+];
 
 export default function NuovoOrdinePage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [tesserati, setTesserati] = useState<Tesserato[]>([]);
   const [articoli, setArticoli] = useState<Articolo[]>([]);
-  const [taglie, setTaglie] = useState<Taglia[]>([]);
+  const [kit, setKit] = useState<Kit[]>([]);
 
   const [tesseratoId, setTesseratoId] = useState("");
   const [cercaTesserato, setCercaTesserato] = useState("");
+
+  const [tipo, setTipo] = useState<"singoli" | "kit">("singoli");
+
   const [articoloId, setArticoloId] = useState("");
   const [taglia, setTaglia] = useState("");
   const [quantita, setQuantita] = useState("1");
 
+  const [kitId, setKitId] = useState("");
+  const [tagliaKit, setTagliaKit] = useState("");
+  const [tagliaCalzettoni, setTagliaCalzettoni] = useState("");
+
   const [righe, setRighe] = useState<Riga[]>([]);
-  const [note, setNote] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const [taglie, setTaglie] = useState<Taglia[]>([]);
+  const [kitRighe, setKitRighe] = useState<KitRiga[]>([]);
 
   useEffect(() => {
     async function load() {
-      const [{ data: tesseratiData }, { data: articoliData }] =
-        await Promise.all([
-          supabase
-            .from("tesserati")
-            .select("id, nome, cognome")
-            .order("cognome")
-            .order("nome"),
+      const [
+        { data: tesseratiData },
+        { data: articoliData },
+        { data: kitData },
+      ] = await Promise.all([
+        supabase
+          .from("tesserati")
+          .select("id,nome,cognome,data_nascita")
+          .order("cognome")
+          .order("nome"),
 
-          supabase
-            .from("articoli")
-            .select("id, nome, categoria, costo, giacenza")
-            .eq("attivo", true)
-            .order("categoria")
-            .order("nome"),
-        ]);
+        supabase
+          .from("articoli")
+          .select("id,nome,categoria,costo,giacenza")
+          .eq("attivo", true)
+          .order("categoria")
+          .order("nome"),
+
+        supabase
+          .from("kit")
+          .select("id,nome,prezzo")
+          .eq("attivo", true)
+          .order("nome"),
+      ]);
 
       setTesserati(tesseratiData ?? []);
       setArticoli(articoliData ?? []);
-      setLoading(false);
+      setKit(kitData ?? []);
     }
 
     load();
@@ -89,7 +145,7 @@ export default function NuovoOrdinePage() {
 
       const { data } = await supabase
         .from("articolo_taglie")
-        .select("taglia, giacenza")
+        .select("taglia,giacenza")
         .eq("articolo_id", articoloId)
         .order("taglia");
 
@@ -99,42 +155,71 @@ export default function NuovoOrdinePage() {
     loadTaglie();
   }, [articoloId]);
 
-  const tesseratiFiltrati = useMemo(() => {
-    const query = cercaTesserato.trim().toLowerCase();
+  useEffect(() => {
+    async function loadKitRighe() {
+      setKitRighe([]);
+      setTagliaKit("");
+      setTagliaCalzettoni("");
 
-    if (!query) {
-      return tesserati;
+      if (!kitId) return;
+
+      const { data } = await supabase
+        .from("kit_righe")
+        .select(`
+          id,
+          articolo_id,
+          quantita,
+          tipo_taglia,
+          articoli (
+            id,
+            nome,
+            categoria
+          )
+        `)
+        .eq("kit_id", kitId);
+
+      setKitRighe((data ?? []) as unknown as KitRiga[]);
     }
 
-    return tesserati.filter((tesserato) =>
-      `${tesserato.cognome} ${tesserato.nome}`
-        .toLowerCase()
-        .includes(query)
-    );
+    loadKitRighe();
+  }, [kitId]);
+
+  const tesseratiFiltrati = useMemo(() => {
+    const q = cercaTesserato.trim().toLowerCase();
+
+    if (!q) return [];
+
+    return tesserati
+      .filter((t) =>
+        `${t.cognome} ${t.nome}`
+          .toLowerCase()
+          .includes(q)
+      )
+      .slice(0, 15);
   }, [tesserati, cercaTesserato]);
 
-  const tesseratoSelezionato = useMemo(
-    () => tesserati.find((item) => item.id === tesseratoId),
-    [tesserati, tesseratoId]
+  const tesserato = tesserati.find(
+    (t) => t.id === tesseratoId
   );
 
-  const articoloSelezionato = useMemo(
-    () => articoli.find((item) => item.id === articoloId),
-    [articoli, articoloId]
+  const articolo = articoli.find(
+    (a) => a.id === articoloId
   );
 
-  const totale = useMemo(() => {
-    return righe.reduce((sum, riga) => {
-      const articolo = articoli.find(
-        (item) => item.id === riga.articolo_id
-      );
+  const kitSelezionato = kit.find(
+    (k) => k.id === kitId
+  );
 
-      return sum + Number(articolo?.costo ?? 0) * riga.quantita;
-    }, 0);
-  }, [righe, articoli]);
+  const totale = righe.reduce(
+    (sum, riga) => sum + riga.prezzo * riga.quantita,
+    0
+  );
 
-  function aggiungiRiga() {
-    if (!articoloId) return;
+  function aggiungiSingolo() {
+    if (!articolo) {
+      alert("Seleziona un articolo.");
+      return;
+    }
 
     const qty = Number(quantita);
 
@@ -148,163 +233,294 @@ export default function NuovoOrdinePage() {
       return;
     }
 
-    const esistente = righe.find(
-      (riga) =>
-        riga.articolo_id === articoloId &&
-        riga.taglia === (taglia || null)
-    );
-
-    if (esistente) {
-      setRighe(
-        righe.map((riga) =>
-          riga === esistente
-            ? { ...riga, quantita: riga.quantita + qty }
-            : riga
-        )
-      );
-    } else {
-      setRighe([
-        ...righe,
-        {
-          articolo_id: articoloId,
-          taglia: taglia || null,
-          quantita: qty,
-        },
-      ]);
-    }
+    setRighe((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        articoloId: articolo.id,
+        nome: articolo.nome,
+        taglia: taglie.length > 0 ? taglia : null,
+        quantita: qty,
+        prezzo: Number(articolo.costo),
+      },
+    ]);
 
     setArticoloId("");
     setTaglia("");
     setQuantita("1");
   }
 
-  function eliminaRiga(index: number) {
-    setRighe(righe.filter((_, i) => i !== index));
+  function aggiungiKit() {
+    if (!kitSelezionato) {
+      alert("Seleziona un kit.");
+      return;
+    }
+
+    const componenti = kitRighe.filter(
+      (r) => r.tipo_taglia !== "nessuna"
+    );
+
+    const richiedeAbbigliamento = componenti.some(
+      (r) => r.tipo_taglia === "abbigliamento"
+    );
+
+    const richiedeCalzettoni = componenti.some(
+      (r) => r.tipo_taglia === "calzettoni"
+    );
+
+    if (richiedeAbbigliamento && !tagliaKit) {
+      alert("Seleziona la taglia dell'abbigliamento.");
+      return;
+    }
+
+    if (richiedeCalzettoni && !tagliaCalzettoni) {
+      alert("Seleziona la taglia dei calzettoni.");
+      return;
+    }
+
+    const nuoveRighe: Riga[] = kitRighe.map((riga) => {
+      const componente = riga.articoli;
+
+      if (!componente) {
+        throw new Error("Componente kit non trovato.");
+      }
+
+      const tagliaComponente =
+        riga.tipo_taglia === "abbigliamento"
+          ? tagliaKit
+          : riga.tipo_taglia === "calzettoni"
+            ? tagliaCalzettoni
+            : null;
+
+      return {
+        id: crypto.randomUUID(),
+        articoloId: riga.articolo_id,
+        nome: componente.nome,
+        taglia: tagliaComponente,
+        quantita: riga.quantita,
+        prezzo: 0,
+        kitId: kitSelezionato.id,
+        kitNome: kitSelezionato.nome,
+      };
+    });
+
+    setRighe((current) => [
+      ...current,
+      ...nuoveRighe,
+    ]);
+
+    setKitId("");
+    setTagliaKit("");
+    setTagliaCalzettoni("");
   }
 
-  async function salva() {
+  function rimuoviRiga(id: string) {
+    setRighe((current) =>
+      current.filter((riga) => riga.id !== id)
+    );
+  }
+
+  async function salvaOrdine() {
     if (!tesseratoId) {
       alert("Seleziona un tesserato.");
       return;
     }
 
-    if (righe.length === 0) {
-      alert("Aggiungi almeno un articolo.");
+    if (!righe.length) {
+      alert("Aggiungi almeno un articolo o un kit.");
       return;
     }
-
-    if (saving) return;
 
     setSaving(true);
 
-    const { data: ordine, error } = await supabase
-      .from("ordini")
-      .insert({
-        tesserato_id: tesseratoId,
-        stato: "inserito",
-        note: note.trim() || null,
-      })
-      .select("id")
-      .single();
-
-    if (error || !ordine) {
-      alert(error?.message ?? "Errore nella creazione dell'ordine.");
-      setSaving(false);
-      return;
-    }
-
-    const { error: righeError } = await supabase
-      .from("ordine_righe")
-      .insert(
-        righe.map((riga) => ({
-          ordine_id: ordine.id,
-          articolo_id: riga.articolo_id,
-          taglia: riga.taglia,
-          quantita: riga.quantita,
-        }))
-      );
-
-    if (righeError) {
-      await supabase
+    try {
+      const { data: ordine, error } = await supabase
         .from("ordini")
-        .delete()
-        .eq("id", ordine.id);
+        .insert({
+          tesserato_id: tesseratoId,
+          stato: "inserito",
+        })
+        .select("id")
+        .single();
 
-      alert(righeError.message);
+      if (error || !ordine) {
+        throw new Error(
+          error?.message ?? "Errore nella creazione dell'ordine."
+        );
+      }
+
+      const righeDaInserire = righe.map((riga) => ({
+        ordine_id: ordine.id,
+        articolo_id: riga.articoloId,
+        taglia: riga.taglia,
+        quantita: riga.quantita,
+        quantita_consegnata: 0,
+      }));
+
+      const { error: righeError } = await supabase
+        .from("ordine_righe")
+        .insert(righeDaInserire);
+
+      if (righeError) {
+        throw new Error(righeError.message);
+      }
+
+      const kitGroups = new Map<
+        string,
+        { quantita: number; prezzo: number }
+      >();
+
+      for (const riga of righe) {
+        if (!riga.kitId) continue;
+
+        const current = kitGroups.get(riga.kitId);
+
+        if (current) {
+          current.quantita = Math.max(
+            current.quantita,
+            1
+          );
+        } else {
+          const selectedKit = kit.find(
+            (k) => k.id === riga.kitId
+          );
+
+          kitGroups.set(riga.kitId, {
+            quantita: 1,
+            prezzo: Number(selectedKit?.prezzo ?? 0),
+          });
+        }
+      }
+
+      for (const [
+        selectedKitId,
+        value,
+      ] of kitGroups) {
+        const { error: kitError } = await supabase
+          .from("ordine_kit")
+          .insert({
+            ordine_id: ordine.id,
+            kit_id: selectedKitId,
+            quantita: value.quantita,
+            prezzo_unitario: value.prezzo,
+          });
+
+        if (kitError) {
+          throw new Error(kitError.message);
+        }
+      }
+
+      router.push(`/ordini/${ordine.id}`);
+      router.refresh();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Errore durante il salvataggio."
+      );
+    } finally {
       setSaving(false);
-      return;
     }
-
-    router.push(`/ordini/${ordine.id}`);
-    router.refresh();
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
-        Caricamento...
-      </div>
-    );
-  }
+  const righeKit = righe.filter((r) => r.kitId);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-4">
+
+      <Button
+        variant="outline"
+        className="w-fit rounded-2xl"
+        onClick={() => router.push("/ordini")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Ordini
+      </Button>
 
       <Card className="rounded-3xl border-2 p-5">
-        <h2 className="mb-4 text-lg font-bold">
+
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1668E8]/10">
+            <ShoppingCart className="h-6 w-6 text-[#1668E8]" />
+          </div>
+
+          <div>
+            <h1 className="text-xl font-bold">
+              Nuovo Ordine
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Seleziona il tesserato e aggiungi ciò che ordina.
+            </p>
+          </div>
+        </div>
+
+      </Card>
+
+      <Card className="rounded-3xl border-2 p-5">
+
+        <h2 className="mb-3 font-semibold">
           Tesserato
         </h2>
 
-        {tesseratoSelezionato ? (
-          <div className="rounded-2xl border-2 border-[#1668E8] bg-[#1668E8]/5 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold">
-                  {tesseratoSelezionato.cognome}{" "}
-                  {tesseratoSelezionato.nome}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Tesserato selezionato
-                </p>
-              </div>
+        {tesserato ? (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#1668E8] bg-[#1668E8]/5 p-4">
 
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={() => {
-                  setTesseratoId("");
-                  setCercaTesserato("");
-                }}
-              >
-                Cambia
-              </Button>
+            <div>
+              <p className="font-semibold">
+                {tesserato.cognome} {tesserato.nome}
+              </p>
+
+              {tesserato.data_nascita && (
+                <p className="text-sm text-muted-foreground">
+                  {new Date(
+                    `${tesserato.data_nascita}T00:00:00`
+                  ).toLocaleDateString("it-IT")}
+                </p>
+              )}
             </div>
+
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => {
+                setTesseratoId("");
+                setCercaTesserato("");
+              }}
+            >
+              Cambia
+            </Button>
+
           </div>
         ) : (
-          <>
+          <div className="relative">
+
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+
             <Input
               value={cercaTesserato}
-              onChange={(e) => setCercaTesserato(e.target.value)}
-              placeholder="Cerca per nome o cognome..."
+              onChange={(e) =>
+                setCercaTesserato(e.target.value)
+              }
+              placeholder="Cerca nome o cognome..."
+              className="h-12 rounded-2xl pl-10"
             />
 
             {cercaTesserato.trim() && (
-              <div className="max-h-64 overflow-y-auto rounded-2xl border-2">
-                {tesseratiFiltrati.length > 0 ? (
-                  tesseratiFiltrati.slice(0, 20).map((tesserato) => (
+              <div className="mt-2 max-h-64 overflow-y-auto rounded-2xl border-2 bg-background">
+
+                {tesseratiFiltrati.length ? (
+                  tesseratiFiltrati.map((item) => (
                     <button
-                      key={tesserato.id}
+                      key={item.id}
                       type="button"
+                      className="flex w-full border-b p-4 text-left last:border-b-0 hover:bg-muted"
                       onClick={() => {
-                        setTesseratoId(tesserato.id);
+                        setTesseratoId(item.id);
                         setCercaTesserato("");
                       }}
-                      className="flex w-full items-center border-b px-4 py-3 text-left last:border-b-0 hover:bg-muted"
                     >
                       <span className="font-medium">
-                        {tesserato.cognome}{" "}
-                        {tesserato.nome}
+                        {item.cognome} {item.nome}
                       </span>
                     </button>
                   ))
@@ -313,133 +529,294 @@ export default function NuovoOrdinePage() {
                     Nessun tesserato trovato.
                   </p>
                 )}
+
               </div>
             )}
-          </>
-        )
+
+          </div>
+        )}
+
       </Card>
 
-      <Card className="rounded-3xl border-2 p-5">
-        <h2 className="mb-4 text-lg font-bold">
-          Articolo
-        </h2>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant={tipo === "singoli" ? "default" : "outline"}
+          className="h-12 rounded-2xl"
+          onClick={() => setTipo("singoli")}
+        >
+          Articoli singoli
+        </Button>
 
-        <div className="space-y-3">
+        <Button
+          variant={tipo === "kit" ? "default" : "outline"}
+          className="h-12 rounded-2xl"
+          onClick={() => setTipo("kit")}
+        >
+          Kit
+        </Button>
+      </div>
 
-          <select
-            value={articoloId}
-            onChange={(e) => setArticoloId(e.target.value)}
-            className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm"
-          >
-            <option value="">
-              Seleziona articolo
-            </option>
+      {tipo === "singoli" ? (
+        <Card className="rounded-3xl border-2 p-5">
 
-            {articoli.map((articolo) => (
-              <option key={articolo.id} value={articolo.id}>
-                {articolo.categoria} — {articolo.nome} — €
-                {Number(articolo.costo).toFixed(2)}
-              </option>
-            ))}
-          </select>
+          <h2 className="mb-4 font-semibold">
+            Aggiungi articolo
+          </h2>
 
-          {articoloSelezionato && taglie.length > 0 && (
+          <div className="space-y-4">
+
             <select
-              value={taglia}
-              onChange={(e) => setTaglia(e.target.value)}
-              className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm"
+              value={articoloId}
+              onChange={(e) =>
+                setArticoloId(e.target.value)
+              }
+              className="h-12 w-full rounded-xl border bg-background px-3 text-sm"
             >
               <option value="">
-                Seleziona taglia
+                Seleziona articolo
               </option>
 
-              {taglie.map((item) => (
+              {articoli.map((item) => (
                 <option
-                  key={item.taglia}
-                  value={item.taglia}
-                  disabled={item.giacenza <= 0}
+                  key={item.id}
+                  value={item.id}
                 >
-                  {item.taglia} — {item.giacenza} disponibili
+                  {item.categoria} — {item.nome}
                 </option>
               ))}
             </select>
-          )}
 
-          <Input
-            type="number"
-            min="1"
-            value={quantita}
-            onChange={(e) => setQuantita(e.target.value)}
-            placeholder="Quantità"
-          />
+            {articolo && (
+              <p className="text-sm text-muted-foreground">
+                Disponibilità attuale:{" "}
+                {taglie.length
+                  ? taglia
+                    ? taglie.find(
+                        (t) => t.taglia === taglia
+                      )?.giacenza ?? 0
+                    : "seleziona taglia"
+                  : articolo.giacenza}
+              </p>
+            )}
 
-          <Button
-            type="button"
-            onClick={aggiungiRiga}
-            className="h-12 w-full rounded-xl bg-[#1668E8]"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Aggiungi articolo
-          </Button>
+            {taglie.length > 0 && (
+              <select
+                value={taglia}
+                onChange={(e) =>
+                  setTaglia(e.target.value)
+                }
+                className="h-12 w-full rounded-xl border bg-background px-3 text-sm"
+              >
+                <option value="">
+                  Seleziona taglia
+                </option>
 
-        </div>
-      </Card>
+                {taglie.map((item) => (
+                  <option
+                    key={item.taglia}
+                    value={item.taglia}
+                  >
+                    {item.taglia} — {item.giacenza} disponibili
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <Input
+              type="number"
+              min="1"
+              value={quantita}
+              onChange={(e) =>
+                setQuantita(e.target.value)
+              }
+              className="h-12 rounded-xl"
+            />
+
+            <Button
+              className="h-12 w-full rounded-2xl bg-[#1668E8]"
+              onClick={aggiungiSingolo}
+            >
+              Aggiungi articolo
+            </Button>
+
+          </div>
+
+        </Card>
+      ) : (
+        <Card className="rounded-3xl border-2 p-5">
+
+          <h2 className="mb-4 font-semibold">
+            Aggiungi kit
+          </h2>
+
+          <div className="space-y-4">
+
+            <select
+              value={kitId}
+              onChange={(e) => setKitId(e.target.value)}
+              className="h-12 w-full rounded-xl border bg-background px-3 text-sm"
+            >
+              <option value="">
+                Seleziona kit
+              </option>
+
+              {kit.map((item) => (
+                <option
+                  key={item.id}
+                  value={item.id}
+                >
+                  {item.nome} — €
+                  {Number(item.prezzo).toFixed(2)}
+                </option>
+              ))}
+            </select>
+
+            {kitSelezionato && (
+              <>
+                <div className="rounded-2xl bg-muted p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Prezzo kit
+                  </p>
+
+                  <p className="text-2xl font-bold">
+                    €{Number(kitSelezionato.prezzo).toFixed(2)}
+                  </p>
+                </div>
+
+                {kitRighe.some(
+                  (r) => r.tipo_taglia === "abbigliamento"
+                ) && (
+                  <select
+                    value={tagliaKit}
+                    onChange={(e) =>
+                      setTagliaKit(e.target.value)
+                    }
+                    className="h-12 w-full rounded-xl border bg-background px-3 text-sm"
+                  >
+                    <option value="">
+                      Taglia abbigliamento
+                    </option>
+
+                    {TAGLIE_ABBIGLIAMENTO.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {kitRighe.some(
+                  (r) => r.tipo_taglia === "calzettoni"
+                ) && (
+                  <select
+                    value={tagliaCalzettoni}
+                    onChange={(e) =>
+                      setTagliaCalzettoni(e.target.value)
+                    }
+                    className="h-12 w-full rounded-xl border bg-background px-3 text-sm"
+                  >
+                    <option value="">
+                      Taglia calzettoni
+                    </option>
+
+                    {TAGLIE_CALZETTONI.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <div className="rounded-2xl border p-4">
+                  <p className="mb-3 text-sm font-semibold">
+                    Composizione
+                  </p>
+
+                  <div className="space-y-2">
+                    {kitRighe.map((riga) => (
+                      <div
+                        key={riga.id}
+                        className="flex justify-between text-sm"
+                      >
+                        <span>
+                          {riga.articoli?.nome}
+                        </span>
+
+                        <span className="font-semibold">
+                          ×{riga.quantita}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  className="h-12 w-full rounded-2xl bg-[#1668E8]"
+                  onClick={aggiungiKit}
+                >
+                  Aggiungi kit
+                </Button>
+              </>
+            )}
+
+          </div>
+
+        </Card>
+      )}
 
       {righe.length > 0 && (
         <Card className="rounded-3xl border-2 p-5">
 
-          <h2 className="mb-4 text-lg font-bold">
+          <h2 className="mb-4 font-semibold">
             Riepilogo
           </h2>
 
           <div className="space-y-2">
 
-            {righe.map((riga, index) => {
-              const articolo = articoli.find(
-                (item) => item.id === riga.articolo_id
-              );
+            {righe.map((riga) => (
+              <div
+                key={riga.id}
+                className="flex items-center justify-between gap-3 rounded-xl border p-3"
+              >
 
-              const subtotale =
-                Number(articolo?.costo ?? 0) *
-                riga.quantita;
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    {riga.nome}
+                  </p>
 
-              return (
-                <div
-                  key={`${riga.articolo_id}-${riga.taglia}-${index}`}
-                  className="flex items-center gap-3 rounded-2xl border-2 p-3"
-                >
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">
-                      {articolo?.nome}
-                    </p>
-
-                    <p className="text-sm text-muted-foreground">
-                      {riga.taglia
-                        ? `Taglia ${riga.taglia} · `
-                        : ""}
-                      {riga.quantita} × €
-                      {Number(articolo?.costo ?? 0).toFixed(2)}
-                    </p>
-                  </div>
-
-                  <span className="font-bold">
-                    €{subtotale.toFixed(2)}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => eliminaRiga(index)}
-                    className="text-red-500"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-
+                  <p className="text-sm text-muted-foreground">
+                    {riga.taglia
+                      ? `Taglia ${riga.taglia} · `
+                      : ""}
+                    ×{riga.quantita}
+                    {riga.kitNome
+                      ? ` · ${riga.kitNome}`
+                      : ""}
+                  </p>
                 </div>
-              );
-            })}
+
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="shrink-0"
+                  onClick={() =>
+                    rimuoviRiga(riga.id)
+                  }
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+
+              </div>
+            ))}
 
           </div>
+
+          {righeKit.length > 0 && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Il prezzo dei kit viene applicato al kit completo,
+              non ai singoli componenti.
+            </p>
+          )}
 
           <div className="mt-5 flex items-center justify-between border-t pt-4">
             <span className="font-semibold">
@@ -447,33 +824,23 @@ export default function NuovoOrdinePage() {
             </span>
 
             <span className="text-2xl font-bold">
-              € {totale.toFixed(2)}
+              €{totale.toFixed(2)}
             </span>
           </div>
 
         </Card>
       )}
 
-      <Card className="rounded-3xl border-2 p-5">
-        <h2 className="mb-4 text-lg font-bold">
-          Note
-        </h2>
-
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Note ordine..."
-          rows={4}
-          className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
-      </Card>
-
       <Button
-        onClick={salva}
-        disabled={saving || !tesseratoId || righe.length === 0}
+        disabled={
+          saving ||
+          !tesseratoId ||
+          righe.length === 0
+        }
+        onClick={salvaOrdine}
         className="h-14 rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
       >
-        {saving ? "Salvataggio..." : "Salva Ordine"}
+        {saving ? "Salvataggio..." : "Crea Ordine"}
       </Button>
 
     </div>

@@ -5,7 +5,6 @@ import {
   BriefcaseBusiness,
   Footprints,
   GlassWater,
-  Hat,
   Plus,
   Shirt,
   ShoppingBag,
@@ -45,8 +44,8 @@ function getIcon(nome: string) {
   if (n.includes("zainett")) return Backpack;
   if (n.includes("borsone")) return ShoppingBag;
   if (n.includes("sacchetta")) return ShoppingBag;
-  if (n.includes("cappell")) return Hat;
-  if (n.includes("berretta")) return Hat;
+  if (n.includes("cappell")) return Trophy;
+  if (n.includes("berretta")) return Trophy;
   if (n.includes("scaldacollo")) return Snowflake;
   if (n.includes("k-way")) return Umbrella;
   if (n.includes("pantalone")) return BriefcaseBusiness;
@@ -179,6 +178,72 @@ export default async function ArticoliPage() {
 
         </section>
       ))}
+
+      <section>
+        <div className="mb-2 flex items-center gap-2 px-1">
+          <div className="h-2.5 w-2.5 rounded-full bg-green-600" />
+
+          <h2 className="text-sm font-bold uppercase tracking-wide text-green-600">
+            Kit
+          </h2>
+
+          <span className="text-xs text-muted-foreground">
+            2
+          </span>
+        </div>
+
+        <div className="space-y-2">
+
+          <Card className="rounded-2xl border p-3 shadow-sm">
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-600/10">
+                <Trophy className="h-5 w-5 text-green-600" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  Kit Scuola Calcio
+                </p>
+
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Kit completo per nuovi iscritti
+                </p>
+              </div>
+
+              <p className="shrink-0 font-bold">
+                €120,00
+              </p>
+
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl border p-3 shadow-sm">
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-600/10">
+                <Trophy className="h-5 w-5 text-green-600" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  Kit Completo
+                </p>
+
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Kit completo per nuovi iscritti
+                </p>
+              </div>
+
+              <p className="shrink-0 font-bold">
+                €180,00
+              </p>
+
+            </div>
+          </Card>
+
+        </div>
+      </section>
 
     </div>
   );
