@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SegnaPagato } from "@/components/ordini/SegnaPagato";
 import { GestisciConsegna } from "@/components/ordini/GestisciConsegna";
 
 type Props = {
@@ -239,6 +240,28 @@ export default async function OrdinePage({ params }: Props) {
             }))}
           />
         )}
+
+      {data.stato === "consegnato" && (
+        <SegnaPagato ordineId={id} />
+      )}
+
+      {data.stato === "pagato" && (
+        <Card className="rounded-3xl border-2 border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950/30">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-6 w-6 text-green-600" />
+
+            <div>
+              <p className="font-semibold">
+                Ordine pagato
+              </p>
+
+              <p className="text-sm text-green-700 dark:text-green-400">
+                Il pagamento è stato registrato.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
     </div>
   );
