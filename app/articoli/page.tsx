@@ -1,11 +1,14 @@
 import Link from "next/link";
 import {
   Backpack,
+  Badge,
   Beer,
   BriefcaseBusiness,
   Footprints,
   GlassWater,
   Plus,
+  Package,
+  Luggage,
   Shirt,
   ShoppingBag,
   Snowflake,
@@ -40,23 +43,23 @@ function getIcon(nome: string) {
   const n = nome.toLowerCase();
 
   if (n.includes("calzett")) return Footprints;
-  if (n.includes("borraccia")) return GlassWater;
   if (n.includes("zainett")) return Backpack;
-  if (n.includes("borsone")) return ShoppingBag;
+  if (n.includes("borsone")) return Luggage;
   if (n.includes("sacchetta")) return ShoppingBag;
-  if (n.includes("cappell")) return Trophy;
-  if (n.includes("berretta")) return Trophy;
   if (n.includes("scaldacollo")) return Snowflake;
-  if (n.includes("k-way")) return Umbrella;
-  if (n.includes("pantalone")) return BriefcaseBusiness;
   if (n.includes("bermuda")) return BriefcaseBusiness;
-  if (n.includes("giaccone")) return Shirt;
-  if (n.includes("bomber")) return Shirt;
+  if (n.includes("pantalone")) return BriefcaseBusiness;
+  if (n.includes("giaccone")) return Badge;
+  if (n.includes("bomber")) return Badge;
+  if (n.includes("k-way")) return Package;
   if (n.includes("felpa")) return Shirt;
   if (n.includes("maglia")) return Shirt;
   if (n.includes("polo")) return Shirt;
+  if (n.includes("borraccia")) return Package;
+  if (n.includes("cappell")) return Trophy;
+  if (n.includes("berretta")) return Trophy;
 
-  return Shirt;
+  return Package;
 }
 
 export default async function ArticoliPage() {
@@ -136,10 +139,10 @@ export default async function ArticoliPage() {
                     <div className="flex items-center gap-3">
 
                       <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${gruppo.bg}`}
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${gruppo.bg}`}
                       >
                         <Icon
-                          className={`h-5 w-5 ${gruppo.colore}`}
+                          className={`h-[22px] w-[22px] ${gruppo.colore}`}
                         />
                       </div>
 
