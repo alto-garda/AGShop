@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ShoppingCart,
-  UserRound,
   CircleDashed,
+  PackageCheck,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
@@ -18,9 +18,7 @@ type Props = {
   }>;
 };
 
-export default async function OrdinePage({
-  params,
-}: Props) {
+export default async function OrdinePage({ params }: Props) {
   const { id } = await params;
 
   const { data } = await supabase
@@ -35,8 +33,10 @@ export default async function OrdinePage({
         id,
         taglia,
         quantita,
+        quantita_consegnata,
         articoli (
-          nome
+          nome,
+          costo
         )
       )
     `)
@@ -45,8 +45,18 @@ export default async function OrdinePage({
 
   if (!data) notFound();
 
+  const righe = data.ordine_righe ?? [];
+
+  const totale = righe.reduce(
+    (sum: number, riga: any) =>
+      sum +
+      Number(riga.articoli?.costo ?? 0) *
+        Number(riga.quantita ?? 0),
+    0
+  );
+
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-5">
+    <div className="flex flex-col gap-4">
 
       <Link href="/ordini">
         <Button
@@ -62,17 +72,18 @@ export default async function OrdinePage({
 
         <div className="flex items-center gap-4">
 
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1668E8]/10">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#1668E8]/10">
             <ShoppingCart className="h-8 w-8 text-[#1668E8]" />
           </div>
 
-          <div>
+          <div className="min-w-0">
 
             <h1 className="text-xl font-bold">
-              {data.tesserati?.cognome} {data.tesserati?.nome}
+              {data.tesserati?.cognome}{" "}
+              {data.tesserati?.nome}
             </h1>
 
-            <div className="mt-2 flex items-center gap-2 text-slate-500">
+            <div className="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <CircleDashed className="h-4 w-4" />
               {data.stato}
             </div>
@@ -89,34 +100,89 @@ export default async function OrdinePage({
           Articoli
         </h2>
 
-        {data.ordine_righe?.length ? (
+        {righe.length ? (
           <div className="space-y-3">
 
-            {data.ordine_righe.map((riga: any) => (
+            {righe.map((riga: any) => {
+              const prezzo = Number(
+                riga.articoli?.costo ?? 0
+              );
 
-              <div
-                key={riga.id}
-                className="flex items-center justify-between rounded-xl border p-3"
-              >
-                <div>
+              const quantita = Number(
+                riga.quantita ?? 0
+              );
 
-                  <p className="font-medium">
-                    {riga.articoli?.nome}
-                  </p>
+              const consegnata = Number(
+                riga.quantita_consegnata ?? 0
+              );
 
-                  <p className="text-sm text-slate-500">
-                    Taglia {riga.taglia}
-                  </p>
+              const residua = Math.max(
+                0,
+                quantita - consegnata
+              );
+
+              return (
+                <div
+                  key={riga.id}
+                  className="rounded-2xl border-2 p-4"
+                >
+
+                  <div className="flex items-start justify-between gap-3">
+
+                    <div className="min-w-0">
+
+                      <p className="font-semibold">
+                        {riga.articoli?.nome}
+                      </p>
+
+                      {riga.taglia && (
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                          Taglia {riga.taglia}
+                        </p>
+                      )}
+
+                    </div>
+
+                    <p className="shrink-0 font-bold">
+                      €{(prezzo * quantita).toFixed(2)}
+                    </p>
+
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+
+                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Ordinata
+                      </p>
+                      <p className="mt-1 font-bold">
+                        {quantita}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Consegnata
+                      </p>
+                      <p className="mt-1 font-bold">
+                        {consegnata}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Da consegnare
+                      </p>
+                      <p className="mt-1 font-bold">
+                        {residua}
+                      </p>
+                    </div>
+
+                  </div>
 
                 </div>
-
-                <span className="font-bold">
-                  x{riga.quantita}
-                </span>
-
-              </div>
-
-            ))}
+              );
+            })}
 
           </div>
         ) : (
@@ -125,7 +191,38 @@ export default async function OrdinePage({
           </p>
         )}
 
+        {righe.length > 0 && (
+          <div className="mt-5 flex items-center justify-between border-t pt-4">
+            <span className="font-semibold">
+              Totale ordine
+            </span>
+
+            <span className="text-2xl font-bold">
+              € {totale.toFixed(2)}
+            </span>
+          </div>
+        )}
+
       </Card>
+
+      {data.note && (
+        <Card className="rounded-3xl border-2 p-5">
+          <h2 className="mb-2 font-semibold">
+            Note
+          </h2>
+
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            {data.note}
+          </p>
+        </Card>
+      )}
+
+      <Button
+        className="h-14 rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
+      >
+        <PackageCheck className="mr-3 h-5 w-5" />
+        Gestisci consegna
+      </Button>
 
     </div>
   );
