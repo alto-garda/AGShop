@@ -1,12 +1,12 @@
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background text-foreground transition-colors duration-300">
+    <div className="flex min-h-[70dvh] w-full items-center justify-center">
       <div className="flex flex-col items-center">
 
-        <div className="relative flex h-28 w-28 items-center justify-center">
-          <div className="absolute inset-0 animate-ping rounded-[2rem] bg-[#1668E8]/10" />
+        <div className="relative flex h-24 w-24 items-center justify-center">
+          <div className="absolute inset-0 animate-pulse rounded-[1.75rem] bg-[#1668E8]/10" />
 
-          <div className="relative flex h-24 w-24 animate-[loadingLogo_1.8s_ease-in-out_infinite] items-center justify-center rounded-[2rem] bg-white p-4 shadow-xl dark:bg-slate-900">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-white p-3 shadow-lg dark:bg-slate-900">
             <img
               src="/logo.png"
               alt="AG Shop"
@@ -15,15 +15,15 @@ export default function Loading() {
           </div>
         </div>
 
-        <h1 className="mt-7 text-xl font-bold tracking-tight">
+        <p className="mt-5 text-lg font-bold tracking-tight">
           AG Shop
-        </h1>
+        </p>
 
         <p className="mt-1 text-sm text-muted-foreground">
           Magazzino Alto Garda
         </p>
 
-        <div className="mt-7 flex items-center gap-1.5">
+        <div className="mt-5 flex gap-1.5">
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1668E8]" />
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1668E8] [animation-delay:150ms]" />
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1668E8] [animation-delay:300ms]" />
