@@ -13,8 +13,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "AGShop",
-  description: "Gestionale ASD Alto Garda",
+  title: "AG Shop",
+  description: "Magazzino Alto Garda",
 };
 
 export default function RootLayout({
