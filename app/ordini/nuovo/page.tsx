@@ -21,6 +21,7 @@ type Articolo = {
   nome: string;
   categoria: string;
   costo: number;
+  giacenza: number;
 };
 
 type Taglia = {
@@ -64,7 +65,7 @@ export default function NuovoOrdinePage() {
 
           supabase
             .from("articoli")
-            .select("id, nome, categoria, costo")
+            .select("id, nome, categoria, costo, giacenza")
             .eq("attivo", true)
             .order("categoria")
             .order("nome"),
@@ -128,10 +129,16 @@ export default function NuovoOrdinePage() {
     }
 
     const disponibilita =
-      taglie.find((item) => item.taglia === taglia)?.giacenza ?? 0;
+      taglie.length > 0
+        ? taglie.find((item) => item.taglia === taglia)?.giacenza ?? 0
+        : articoloSelezionato?.giacenza ?? 0;
 
-    if (taglie.length > 0 && qty > disponibilita) {
-      alert(`Disponibilità ${taglia}: ${disponibilita}`);
+    if (qty > disponibilita) {
+      alert(
+        taglie.length > 0
+          ? `Disponibilità ${taglia}: ${disponibilita}`
+          : `Disponibilità: ${disponibilita}`
+      );
       return;
     }
 
