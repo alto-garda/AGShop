@@ -24,23 +24,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className={`${geist.className} bg-[#F6F8FC]`}>
+      <body className={geist.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem={false}
+          enableSystem
+          disableTransitionOnChange={false}
         >
-          <Header />
+          <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+            <Header />
 
-          <PageTransition>
-            <main className="mx-auto max-w-md px-5 pt-5 pb-24">
-              {children}
-            </main>
-          </PageTransition>
+            <PageTransition>
+              <main className="mx-auto max-w-md px-5 pt-4 pb-24">
+                {children}
+              </main>
+            </PageTransition>
 
-          <Footer />
+            <Footer />
 
-          <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-center" />
+          </div>
         </ThemeProvider>
       </body>
     </html>

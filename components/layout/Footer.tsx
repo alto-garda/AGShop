@@ -23,34 +23,43 @@ export function Footer() {
   const pathname = usePathname();
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white shadow-2xl">
-      <nav className="mx-auto flex h-20 max-w-md items-center justify-around">
+    <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-background/95 backdrop-blur-md transition-colors duration-300 dark:border-white/10">
+      <nav className="mx-auto flex h-[68px] w-full max-w-md items-stretch px-1">
+
         {items.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
 
           return (
-            <Link key={item.href} href={item.href}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex min-w-0 flex-1 items-center justify-center"
+            >
               <motion.div
                 whileTap={{ scale: 0.92 }}
-                whileHover={{ scale: 1.05 }}
-                className={`flex flex-col items-center gap-1 ${
-                  active ? "text-[#1668E8]" : "text-slate-400"
+                className={`flex h-full w-full flex-col items-center justify-center gap-1 ${
+                  active
+                    ? "text-[#1668E8]"
+                    : "text-slate-400 dark:text-slate-500"
                 }`}
               >
-                {active && (
-                  <div className="h-1 w-8 rounded-full bg-[#FFD339]" />
-                )}
+                <div
+                  className={`h-1 rounded-full bg-[#FFD339] transition-all duration-200 ${
+                    active ? "w-8" : "w-0"
+                  }`}
+                />
 
-                <Icon size={22} />
+                <Icon size={21} />
 
-                <span className="text-[11px] font-medium">
+                <span className="truncate text-[10px] font-medium">
                   {item.label}
                 </span>
               </motion.div>
             </Link>
           );
         })}
+
       </nav>
     </footer>
   );
