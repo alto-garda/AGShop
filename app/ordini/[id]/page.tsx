@@ -4,13 +4,14 @@ import {
   ArrowLeft,
   ShoppingCart,
   CircleDashed,
-  PackageCheck,
+
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { GestisciConsegna } from "@/components/ordini/GestisciConsegna";
 
 type Props = {
   params: Promise<{
@@ -217,12 +218,27 @@ export default async function OrdinePage({ params }: Props) {
         </Card>
       )}
 
-      <Button
-        className="h-14 rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
-      >
-        <PackageCheck className="mr-3 h-5 w-5" />
-        Gestisci consegna
-      </Button>
+      {data.stato !== "pagato" &&
+        righe.some(
+          (riga: any) =>
+            Number(riga.quantita_consegnata ?? 0) <
+            Number(riga.quantita ?? 0)
+        ) && (
+          <GestisciConsegna
+            ordineId={id}
+            righe={righe.map((riga: any) => ({
+              id: riga.id,
+              articolo: riga.articoli
+                ? { nome: riga.articoli.nome }
+                : null,
+              taglia: riga.taglia,
+              quantita: Number(riga.quantita ?? 0),
+              quantita_consegnata: Number(
+                riga.quantita_consegnata ?? 0
+              ),
+            }))}
+          />
+        )}
 
     </div>
   );
