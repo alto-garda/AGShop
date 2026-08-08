@@ -44,6 +44,7 @@ export default function NuovoOrdinePage() {
   const [taglie, setTaglie] = useState<Taglia[]>([]);
 
   const [tesseratoId, setTesseratoId] = useState("");
+  const [cercaTesserato, setCercaTesserato] = useState("");
   const [articoloId, setArticoloId] = useState("");
   const [taglia, setTaglia] = useState("");
   const [quantita, setQuantita] = useState("1");
@@ -98,6 +99,25 @@ export default function NuovoOrdinePage() {
     loadTaglie();
   }, [articoloId]);
 
+  const tesseratiFiltrati = useMemo(() => {
+    const query = cercaTesserato.trim().toLowerCase();
+
+    if (!query) {
+      return tesserati;
+    }
+
+    return tesserati.filter((tesserato) =>
+      `${tesserato.cognome} ${tesserato.nome}`
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [tesserati, cercaTesserato]);
+
+  const tesseratoSelezionato = useMemo(
+    () => tesserati.find((item) => item.id === tesseratoId),
+    [tesserati, tesseratoId]
+  );
+
   const articoloSelezionato = useMemo(
     () => articoli.find((item) => item.id === articoloId),
     [articoli, articoloId]
@@ -125,20 +145,6 @@ export default function NuovoOrdinePage() {
 
     if (taglie.length > 0 && !taglia) {
       alert("Seleziona una taglia.");
-      return;
-    }
-
-    const disponibilita =
-      taglie.length > 0
-        ? taglie.find((item) => item.taglia === taglia)?.giacenza ?? 0
-        : articoloSelezionato?.giacenza ?? 0;
-
-    if (qty > disponibilita) {
-      alert(
-        taglie.length > 0
-          ? `Disponibilità ${taglia}: ${disponibilita}`
-          : `Disponibilità: ${disponibilita}`
-      );
       return;
     }
 
@@ -249,21 +255,68 @@ export default function NuovoOrdinePage() {
           Tesserato
         </h2>
 
-        <select
-          value={tesseratoId}
-          onChange={(e) => setTesseratoId(e.target.value)}
-          className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm"
-        >
-          <option value="">
-            Seleziona tesserato
-          </option>
+        {tesseratoSelezionato ? (
+          <div className="rounded-2xl border-2 border-[#1668E8] bg-[#1668E8]/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">
+                  {tesseratoSelezionato.cognome}{" "}
+                  {tesseratoSelezionato.nome}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Tesserato selezionato
+                </p>
+              </div>
 
-          {tesserati.map((tesserato) => (
-            <option key={tesserato.id} value={tesserato.id}>
-              {tesserato.cognome} {tesserato.nome}
-            </option>
-          ))}
-        </select>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => {
+                  setTesseratoId("");
+                  setCercaTesserato("");
+                }}
+              >
+                Cambia
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Input
+              value={cercaTesserato}
+              onChange={(e) => setCercaTesserato(e.target.value)}
+              placeholder="Cerca per nome o cognome..."
+            />
+
+            {cercaTesserato.trim() && (
+              <div className="max-h-64 overflow-y-auto rounded-2xl border-2">
+                {tesseratiFiltrati.length > 0 ? (
+                  tesseratiFiltrati.slice(0, 20).map((tesserato) => (
+                    <button
+                      key={tesserato.id}
+                      type="button"
+                      onClick={() => {
+                        setTesseratoId(tesserato.id);
+                        setCercaTesserato("");
+                      }}
+                      className="flex w-full items-center border-b px-4 py-3 text-left last:border-b-0 hover:bg-muted"
+                    >
+                      <span className="font-medium">
+                        {tesserato.cognome}{" "}
+                        {tesserato.nome}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="p-4 text-sm text-muted-foreground">
+                    Nessun tesserato trovato.
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )
       </Card>
 
       <Card className="rounded-3xl border-2 p-5">
