@@ -1,114 +1,184 @@
 import Link from "next/link";
-import { Plus, Shirt } from "lucide-react";
+import {
+  Backpack,
+  Beer,
+  BriefcaseBusiness,
+  Footprints,
+  GlassWater,
+  Hat,
+  Plus,
+  Shirt,
+  ShoppingBag,
+  Snowflake,
+  Trophy,
+  Umbrella,
+} from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const categorie = [
+  {
+    nome: "Rappresentanza",
+    colore: "text-blue-600",
+    bg: "bg-blue-600/10",
+  },
+  {
+    nome: "Allenamento",
+    colore: "text-slate-950 dark:text-white",
+    bg: "bg-slate-950/10 dark:bg-white/10",
+  },
+  {
+    nome: "Merchandising",
+    colore: "text-red-600",
+    bg: "bg-red-600/10",
+  },
+];
+
+function getIcon(nome: string) {
+  const n = nome.toLowerCase();
+
+  if (n.includes("calzett")) return Footprints;
+  if (n.includes("borraccia")) return GlassWater;
+  if (n.includes("zainett")) return Backpack;
+  if (n.includes("borsone")) return ShoppingBag;
+  if (n.includes("sacchetta")) return ShoppingBag;
+  if (n.includes("cappell")) return Hat;
+  if (n.includes("berretta")) return Hat;
+  if (n.includes("scaldacollo")) return Snowflake;
+  if (n.includes("k-way")) return Umbrella;
+  if (n.includes("pantalone")) return BriefcaseBusiness;
+  if (n.includes("bermuda")) return BriefcaseBusiness;
+  if (n.includes("giaccone")) return Shirt;
+  if (n.includes("bomber")) return Shirt;
+  if (n.includes("felpa")) return Shirt;
+  if (n.includes("maglia")) return Shirt;
+  if (n.includes("polo")) return Shirt;
+
+  return Shirt;
+}
+
 export default async function ArticoliPage() {
-  const { data: articoli } = await supabase
+  const { data: articoli, error } = await supabase
     .from("articoli")
-    .select(`
-      *,
-      articolo_taglie (
-        taglia,
-        giacenza
-      )
-    `)
-    .order("categoria")
+    .select("id, categoria, nome, costo, giacenza, attivo")
+    .eq("attivo", true)
     .order("nome");
 
+  if (error) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Card className="rounded-3xl border-2 p-6 text-center">
+          <p className="font-semibold">
+            Errore nel caricamento degli articoli
+          </p>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            {error.message}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  const gruppi = categorie.map((categoria) => ({
+    ...categoria,
+    articoli:
+      articoli?.filter(
+        (articolo) => articolo.categoria === categoria.nome
+      ) ?? [],
+  }));
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
 
       <Link href="/articoli/nuovo">
-        <Button className="h-14 w-full justify-start rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]">
-          <Plus className="mr-3 h-5 w-5" />
+        <Button className="h-12 w-full rounded-2xl bg-[#1668E8] font-semibold">
+          <Plus className="mr-2 h-5 w-5" />
           Nuovo Articolo
         </Button>
       </Link>
 
-      {articoli?.map((articolo) => {
-        const taglie = articolo.articolo_taglie ?? [];
+      {gruppi.map((gruppo) => (
+        <section key={gruppo.nome}>
 
-        const totaleGiacenza = taglie.reduce(
-          (totale: number, item: { giacenza: number | null }) =>
-            totale + (item.giacenza ?? 0),
-          0
-        );
+          <div className="mb-2 flex items-center gap-2 px-1">
+            <div
+              className={`h-2.5 w-2.5 rounded-full ${gruppo.bg}`}
+            >
+              <div
+                className={`h-2.5 w-2.5 rounded-full ${gruppo.colore}`}
+              />
+            </div>
 
-        return (
-          <Link
-            key={articolo.id}
-            href={`/articoli/${articolo.id}`}
-          >
-            <Card className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#1668E8] dark:border-slate-700 dark:bg-slate-900">
+            <h2 className={`text-sm font-bold uppercase tracking-wide ${gruppo.colore}`}>
+              {gruppo.nome}
+            </h2>
 
-              <div className="flex items-start gap-4">
+            <span className="text-xs text-muted-foreground">
+              {gruppo.articoli.length}
+            </span>
+          </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1668E8]/10">
-                  <Shirt className="h-6 w-6 text-[#1668E8]" />
-                </div>
+          <div className="space-y-2">
 
-                <div className="min-w-0 flex-1">
+            {gruppo.articoli.map((articolo) => {
+              const Icon = getIcon(articolo.nome);
 
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                    {articolo.categoria}
-                  </p>
+              return (
+                <Link
+                  key={articolo.id}
+                  href={`/articoli/${articolo.id}`}
+                >
+                  <Card className="rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
 
-                  <h2 className="font-semibold text-slate-900 dark:text-white">
-                    {articolo.nome}
-                  </h2>
+                    <div className="flex items-center gap-3">
 
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {articolo.codice_fornitore || "-"}
-                  </p>
-
-                </div>
-
-                <div className="shrink-0 text-right">
-
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">
-                    € {Number(articolo.costo ?? 0).toFixed(2)}
-                  </p>
-
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {totaleGiacenza} pezzi
-                  </p>
-
-                </div>
-
-              </div>
-
-              {taglie.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                  {taglie.map(
-                    (item: {
-                      taglia: string;
-                      giacenza: number | null;
-                    }) => (
-                      <span
-                        key={item.taglia}
-                        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${gruppo.bg}`}
                       >
-                        {item.taglia}: {item.giacenza ?? 0}
-                      </span>
-                    )
-                  )}
-                </div>
-              )}
+                        <Icon
+                          className={`h-5 w-5 ${gruppo.colore}`}
+                        />
+                      </div>
 
-            </Card>
-          </Link>
-        );
-      })}
+                      <div className="min-w-0 flex-1">
 
-      {!articoli?.length && (
-        <Card className="rounded-2xl border-2 border-dashed p-8 text-center text-slate-500">
-          Nessun articolo presente
-        </Card>
-      )}
+                        <p className="truncate font-semibold">
+                          {articolo.nome}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {articolo.giacenza} disponibili
+                        </p>
+
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <p className="font-bold">
+                          €{Number(articolo.costo).toFixed(2)}
+                        </p>
+                      </div>
+
+                    </div>
+
+                  </Card>
+                </Link>
+              );
+            })}
+
+            {gruppo.articoli.length === 0 && (
+              <Card className="rounded-2xl border-2 border-dashed p-5 text-center text-sm text-muted-foreground">
+                Nessun articolo
+              </Card>
+            )}
+
+          </div>
+
+        </section>
+      ))}
 
     </div>
   );
