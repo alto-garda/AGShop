@@ -13,6 +13,8 @@ const pages: Record<string, string> = {
   "/ordini": "Ordini",
   "/tesserati": "Tesserati",
   "/magazzino": "Magazzino",
+"/magazzino/carico": "Carico",
+"/magazzino/scarico": "Scarico",
   "/impostazioni": "Impostazioni",
   "/profilo": "Profilo",
 };
