@@ -30,32 +30,32 @@ export default async function DashboardPage() {
     nome = profile?.nome ?? "Andrea";
   }
 
-  const [
-    { count: inseriti },
-    { count: prenotati },
-    { count: parziali },
-    { count: pronti },
-  ] = await Promise.all([
-    supabase
-      .from("ordini")
-      .select("*", { count: "exact", head: true })
-      .eq("stato", "inserito"),
+const [
+{ count: inAttesa },
+{ count: parziali },
+{ count: pronti },
+{ count: daPagare },
+] = await Promise.all([
+supabase
+.from("ordini")
+.select("*", { count: "exact", head: true })
+.eq("stato", "in_attesa"),
 
-    supabase
-      .from("ordini")
-      .select("*", { count: "exact", head: true })
-      .eq("stato", "prenotato"),
+supabase
+.from("ordini")
+.select("*", { count: "exact", head: true })
+.eq("stato", "parziale"),
 
-    supabase
-      .from("ordini")
-      .select("*", { count: "exact", head: true })
-      .eq("stato", "parziale"),
+supabase
+.from("ordini")
+.select("*", { count: "exact", head: true })
+.eq("stato", "pronto"),
 
-    supabase
-      .from("ordini")
-      .select("*", { count: "exact", head: true })
-      .eq("stato", "arrivato"),
-  ]);
+supabase
+.from("ordini")
+.select("*", { count: "exact", head: true })
+.eq("stato", "consegnato"),
+]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -75,8 +75,8 @@ export default async function DashboardPage() {
       </div>
 
       <Link href="/ordini/nuovo">
-        <Button className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold shadow-lg hover:bg-[#0F5BD6]">
-          <ShoppingCart className="mr-3 h-5 w-5" />
+        <Button className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold text-white shadow-lg hover:bg-[#0F5BD6]">
+          <ShoppingCart className="mr-3 h-5 w-5 text-white" />
           Nuovo Ordine
         </Button>
       </Link>
@@ -107,49 +107,49 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3">
 
-        <Link href="/ordini?stato=inserito">
+        <Link href="/ordini?stato=in_attesa" className="order-1">
+      <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
+        <div className="p-4">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-red-600" />
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              In Attesa
+            </span>
+          </div>
+
+          <div className="mt-2 text-3xl font-bold">
+            {inAttesa ?? 0}
+          </div>
+        </div>
+
+        <div className="h-1.5 rounded-b-2xl bg-red-600" />
+      </Card>
+    </Link>
+
+        <Link href="/ordini?stato=consegnato" className="order-4">
+      <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
+        <div className="p-4">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-blue-600" />
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Da Pagare
+            </span>
+          </div>
+
+          <div className="mt-2 text-3xl font-bold">
+            {daPagare ?? 0}
+          </div>
+        </div>
+
+        <div className="h-1.5 rounded-b-2xl bg-blue-600" />
+      </Card>
+    </Link>
+
+        <Link href="/ordini?stato=parziale" className="order-2">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
             <div className="p-4">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-red-600" />
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Inseriti
-                </span>
-              </div>
-
-              <div className="mt-2 text-3xl font-bold">
-                {inseriti ?? 0}
-              </div>
-            </div>
-
-            <div className="h-1.5 rounded-b-2xl bg-red-600" />
-          </Card>
-        </Link>
-
-        <Link href="/ordini?stato=prenotato">
-          <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-red-600" />
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Prenotati
-                </span>
-              </div>
-
-              <div className="mt-2 text-3xl font-bold">
-                {prenotati ?? 0}
-              </div>
-            </div>
-
-            <div className="h-1.5 rounded-b-2xl bg-red-600" />
-          </Card>
-        </Link>
-
-        <Link href="/ordini?stato=parziale">
-          <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
-              <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-yellow-500" />
+                <Truck className="h-5 w-5 text-orange-500" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   Parziali
                 </span>
@@ -160,11 +160,11 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="h-1.5 rounded-b-2xl bg-yellow-500" />
+            <div className="h-1.5 rounded-b-2xl bg-orange-500" />
           </Card>
         </Link>
 
-        <Link href="/ordini?stato=arrivato">
+        <Link href="/ordini?stato=pronto" className="order-3">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
             <div className="p-4">
               <div className="flex items-center gap-2">
