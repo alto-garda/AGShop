@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, ClipboardList, PackageCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
@@ -27,19 +27,24 @@ export function GestisciConsegna({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const [saving, setSaving] = useState(false);
 
   const residua = Math.max(
     0,
     riga.quantita - riga.quantita_consegnata
   );
 
-  const disponibile = riga.disponibilita > 0;
+  const [saving, setSaving] = useState(false);
+  const [justDelivered, setJustDelivered] = useState(false);
+
   const completata = residua <= 0;
-  const consegnabile = disponibile && !completata;
 
   async function consegnaUno() {
-    if (saving || !consegnabile) return;
+    if (saving || completata) return;
+
+    if (riga.disponibilita <= 0) {
+      alert("Nessuna disponibilità in magazzino.");
+      return;
+    }
 
     setSaving(true);
 
@@ -56,31 +61,11 @@ export function GestisciConsegna({
         throw new Error(error.message);
       }
 
-      const { data: nuovoStato, error: statoError } =
-        await supabase.rpc(
-          "ricalcola_stato_ordine",
-          {
-            p_ordine_id: ordineId,
-          }
-        );
+      setJustDelivered(true);
 
-      if (statoError || !nuovoStato) {
-        throw new Error(
-          statoError?.message ??
-            "Errore nel calcolo dello stato dell'ordine."
-        );
-      }
-
-      const { error: ordineError } = await supabase
-        .from("ordini")
-        .update({
-          stato: nuovoStato,
-        })
-        .eq("id", ordineId);
-
-      if (ordineError) {
-        throw new Error(ordineError.message);
-      }
+      setTimeout(() => {
+        setJustDelivered(false);
+      }, 500);
 
       router.refresh();
     } catch (error) {
@@ -98,21 +83,26 @@ export function GestisciConsegna({
     <Button
       type="button"
       onClick={consegnaUno}
-      disabled={saving || !consegnabile}
-      className={`h-full min-h-[76px] w-full rounded-xl px-2 text-sm font-bold ${
-        completata
-          ? "bg-green-600 text-white hover:bg-green-600"
-          : consegnabile
-            ? "bg-[#1668E8] text-white hover:bg-[#0F5BD6]"
-            : "bg-muted text-muted-foreground opacity-50"
+      disabled={
+        saving ||
+        completata ||
+        riga.disponibilita < residua
+      }
+      className={`flex h-full min-h-[56px] w-full rounded-xl px-2 text-white ${
+        riga.disponibilita < residua
+          ? "bg-red-600 hover:bg-red-600 cursor-not-allowed"
+          : "bg-green-600 hover:bg-green-700"
       }`}
     >
-      {completata ? (
-        <Check className="h-7 w-7" />
-      ) : saving ? (
-        "..."
+      {completata || justDelivered ? (
+        <Check className="h-5 w-5" />
       ) : (
-        "CONSEGNA"
+        <>
+          <PackageCheck className="mr-1.5 h-4 w-4" />
+          <span className="text-[10px] font-bold">
+            CONSEGNA
+          </span>
+        </>
       )}
     </Button>
   );

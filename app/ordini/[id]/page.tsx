@@ -5,6 +5,8 @@ import {
   ShoppingCart,
   CircleDashed,
   CheckCircle2,
+  Package,
+  ClipboardList,
 
 } from "lucide-react";
 
@@ -41,7 +43,7 @@ export default async function OrdinePage({ params }: Props) {
         quantita_consegnata,
         articoli (
           nome,
-          costo
+          categoria
         )
       )
     `)
@@ -151,18 +153,7 @@ export default async function OrdinePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-
-      <Link href="/ordini">
-        <Button
-          variant="outline"
-          className="justify-start rounded-2xl"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna agli Ordini
-        </Button>
-      </Link>
-
-      <Card className="rounded-3xl border-2 p-6">
+<Card className="rounded-3xl border-2 p-6">
 
         <div className="flex items-center gap-4">
 
@@ -198,14 +189,7 @@ export default async function OrdinePage({ params }: Props) {
           <div className="space-y-3">
 
             {righe.map((riga: any) => {
-              const prezzo = Number(
-            riga.articoli?.costo ?? 0
-          );
-
-          const quantita = Number(
-            riga.quantita ?? 0
-          );
-
+          const quantita = Number(riga.quantita ?? 0);
           const consegnata = Number(
             riga.quantita_consegnata ?? 0
           );
@@ -223,65 +207,65 @@ export default async function OrdinePage({ params }: Props) {
           return (
             <div
               key={riga.id}
-              className="rounded-2xl border-2 p-4"
+              className="rounded-2xl border-2 p-3"
             >
-
-              <p className="text-xs font-bold uppercase tracking-wide text-[#1668E8]">
-                {riga.articoli?.categoria ?? "Articolo"}
+              <p className="text-[10px] font-bold uppercase tracking-wide text-[#1668E8]">
+                {riga.articoli?.categoria}
               </p>
 
-              <p className="mt-1 text-lg font-bold">
-                {riga.articoli?.nome}
-              </p>
-
-              {riga.taglia && (
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Taglia {riga.taglia}
+              <div className="grid grid-cols-3 gap-2">
+                <p className="col-span-2 flex min-h-[40px] items-center text-base font-bold leading-tight">
+                  {riga.articoli?.nome}
                 </p>
-              )}
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
-
-                <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Disponibili
-                  </p>
-
-                  <p className="mt-1 text-xl font-bold">
-                    {disponibilitaRiga}
-                  </p>
+                <div className="flex min-h-[40px] items-center justify-center rounded-xl bg-black px-2 text-base font-bold text-white">
+                  {riga.taglia ?? "—"}
                 </div>
-
-                <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Da consegnare
-                  </p>
-
-                  <p className="mt-1 text-xl font-bold">
-                    {residua}
-                  </p>
-                </div>
-
-                <GestisciConsegna
-                  ordineId={id}
-                  riga={{
-                    id: riga.id,
-                    articolo: riga.articoli
-                      ? { nome: riga.articoli.nome }
-                      : null,
-                    taglia: riga.taglia,
-                    quantita,
-                    quantita_consegnata: consegnata,
-                    disponibilita: disponibilitaRiga,
-                  }}
-                />
-
               </div>
 
-              <div className="mt-3 text-right text-sm text-muted-foreground">
-                €{(prezzo * quantita).toFixed(2)}
-              </div>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+              <p className="text-[9px] font-bold leading-none text-muted-foreground">
+                DISPONIBILI
+              </p>
 
+              <div className="mt-1 flex items-center gap-2">
+                <Package className="h-5 w-5 text-muted-foreground" />
+                <p className="text-xl font-bold leading-none">
+                  {disponibilitaRiga}
+                </p>
+              </div>
+            </div>
+
+                <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+              <p className="text-[9px] font-bold leading-none text-muted-foreground">
+                DA CONSEGNARE
+              </p>
+
+              <div className="mt-1 flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-muted-foreground" />
+                <p className="text-xl font-bold leading-none">
+                  {residua}
+                </p>
+              </div>
+            </div>
+
+                <div className="min-h-[64px]">
+                  <GestisciConsegna
+                    ordineId={id}
+                    riga={{
+                      id: riga.id,
+                      articolo: riga.articoli
+                        ? { nome: riga.articoli.nome }
+                        : null,
+                      taglia: riga.taglia,
+                      quantita,
+                      quantita_consegnata: consegnata,
+                      disponibilita: disponibilitaRiga,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           );
         })}

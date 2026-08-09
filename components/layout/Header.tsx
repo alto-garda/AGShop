@@ -37,7 +37,9 @@ export function Header() {
 
         <div className="absolute left-1/2 -translate-x-1/2">
           <Badge className="rounded-full border border-white/30 bg-white px-3 py-1 text-xs font-semibold text-[#1668E8]">
-            {pages[pathname] ?? "AGShop"}
+            {pathname.match(/^\/ordini\/[^/]+$/)
+              ? "Dettaglio Ordine"
+              : pages[pathname] ?? "AGShop"}
           </Badge>
         </div>
 
