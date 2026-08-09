@@ -514,14 +514,6 @@ export default function NuovoOrdinePage() {
 
   return (
     <div className="flex flex-col gap-4 pb-4">
-      <header className="flex items-center gap-3">
-        <ShoppingCart className="h-6 w-6 text-[#1668E8]" />
-
-        <h1 className="text-2xl font-bold">
-          Nuovo Ordine
-        </h1>
-      </header>
-
       <button
         type="button"
         onClick={() => setTesseratoOpen(true)}
@@ -700,8 +692,8 @@ export default function NuovoOrdinePage() {
       </Button>
 
       {tesseratoOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
-          <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex h-[540px] max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
                 Seleziona tesserato
@@ -733,7 +725,7 @@ export default function NuovoOrdinePage() {
               />
             </div>
 
-            <div className="mt-3 max-h-[55vh] overflow-y-auto rounded-2xl border">
+            <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-2xl border">
               {tesseratiFiltrati.map((item) => (
                 <button
                   key={item.id}
@@ -766,50 +758,50 @@ export default function NuovoOrdinePage() {
       )}
 
       {articoloOpen && articoloSelezionato && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
-          <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl">
-            <div className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {articoloSelezionato.categoria}
-                </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="flex h-[540px] max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
 
-                <h2 className="text-xl font-bold">
-                  {articoloSelezionato.nome}
-                </h2>
-              </div>
+        <div className="flex h-[65px] shrink-0 items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {articoloSelezionato.categoria}
+            </p>
 
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full"
-                onClick={chiudiArticolo}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+            <h2 className="text-xl font-bold">
+              {articoloSelezionato.nome}
+            </h2>
+          </div>
 
-            {taglie.length > 0 && (
-              <div>
-                <p className="mb-2 text-sm font-semibold">
-                  Taglia
-                </p>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full"
+            onClick={chiudiArticolo}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
+        <div className="mt-4 h-[210px] shrink-0">
+          {taglie.length > 0 ? (
+            <>
+              <p className="mb-2 text-sm font-semibold">
+                Taglia
+              </p>
+
+              <div className="h-[150px] overflow-y-auto rounded-2xl border border-border/60 p-2">
                 <div className="grid grid-cols-4 gap-2">
                   {taglie.map((item) => {
                     const selected =
-                      item.taglia ===
-                      tagliaSelezionata;
+                      item.taglia === tagliaSelezionata;
 
                     return (
                       <button
                         key={item.taglia}
                         type="button"
-                        
+                        disabled={item.giacenza <= 0}
                         onClick={() =>
-                          setTagliaSelezionata(
-                            item.taglia
-                          )
+                          setTagliaSelezionata(item.taglia)
                         }
                         className={`rounded-xl border-2 px-2 py-3 text-sm font-semibold transition ${
                           selected
@@ -827,70 +819,79 @@ export default function NuovoOrdinePage() {
                   })}
                 </div>
               </div>
-            )}
 
-            <div className="mt-6">
-              <p className="mb-2 text-sm font-semibold">
-                Quantità
-              </p>
-
-              <div className="flex items-center justify-center gap-6 rounded-2xl bg-muted p-4">
-                <Button
-                  type="button"
-                  size="icon"
-                  className="h-14 w-14 rounded-2xl"
-                  variant="outline"
-                  disabled={quantita <= 1}
-                  onClick={() =>
-                    setQuantita(
-                      (value) => Math.max(1, value - 1)
-                    )
-                  }
-                >
-                  <Minus className="h-6 w-6" />
-                </Button>
-
-                <span className="min-w-12 text-center text-3xl font-bold">
-                  {quantita}
-                </span>
-
-                <Button
-                  type="button"
-                  size="icon"
-                  className="h-14 w-14 rounded-2xl"
-                  onClick={() =>
-                    setQuantita(
-                      (value) => value + 1
-                    )
-                  }
-                >
-                  <Plus className="h-6 w-6" />
-                </Button>
+              <div className="mt-2 h-5 text-center text-sm text-muted-foreground">
+                {tagliaSelezionata
+                  ? `${disponibilitaSelezionata()} disponibili`
+                  : "Seleziona una taglia"}
               </div>
-            </div>
-
-            {taglie.length > 0 && tagliaSelezionata && (
-              <p className="mt-3 text-center text-sm text-muted-foreground">
-                {disponibilitaSelezionata()} disponibili
+            </>
+          ) : (
+            <div className="flex h-[180px] items-center justify-center rounded-2xl bg-muted/40">
+              <p className="text-sm text-muted-foreground">
+                Taglia unica
               </p>
-            )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 h-[110px] shrink-0">
+          <p className="mb-2 text-sm font-semibold">
+            Quantità
+          </p>
+
+          <div className="flex h-[88px] items-center justify-center gap-6 rounded-2xl bg-muted p-4">
+            <Button
+              type="button"
+              size="icon"
+              className="h-14 w-14 rounded-2xl"
+              variant="outline"
+              disabled={quantita <= 1}
+              onClick={() =>
+                setQuantita((value) =>
+                  Math.max(1, value - 1)
+                )
+              }
+            >
+              <Minus className="h-6 w-6" />
+            </Button>
+
+            <span className="min-w-12 text-center text-3xl font-bold">
+              {quantita}
+            </span>
 
             <Button
               type="button"
-              disabled={
-                taglie.length > 0 &&
-                !tagliaSelezionata
+              size="icon"
+              className="h-14 w-14 rounded-2xl"
+              onClick={() =>
+                setQuantita((value) => value + 1)
               }
-              onClick={aggiungiArticolo}
-              className="mt-5 h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
             >
-              Aggiungi
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
         </div>
-      )}
 
-      {kitOpen && (
+        <div className="mt-3 shrink-0">
+          <Button
+            type="button"
+            disabled={
+              taglie.length > 0 &&
+              !tagliaSelezionata
+            }
+            onClick={aggiungiArticolo}
+            className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
+          >
+            Aggiungi
+          </Button>
+        </div>
+
+      </div>
+    </div>
+  )}
+
+  {kitOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
           <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
