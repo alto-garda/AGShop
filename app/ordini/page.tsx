@@ -26,11 +26,11 @@ export default async function OrdiniPage() {
     });
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4">
+    <div className="flex flex-col gap-5">
 
       <Link href="/ordini/nuovo">
-        <Button className="h-14 w-full justify-start rounded-2xl bg-[#1668E8]">
-          <Plus className="mr-3 h-5 w-5" />
+        <Button className="h-12 w-full justify-center rounded-2xl bg-[#1668E8] font-semibold">
+          <Plus className="mr-2 h-5 w-5" />
           Nuovo Ordine
         </Button>
       </Link>
@@ -40,12 +40,12 @@ export default async function OrdiniPage() {
           key={ordine.id}
           href={`/ordini/${ordine.id}`}
         >
-          <Card className="rounded-2xl border-2 border-slate-200 p-4 shadow-sm transition hover:border-[#1668E8]">
+          <Card className="rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1668E8]/10">
-                <ShoppingCart className="h-6 w-6 text-[#1668E8]" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1668E8]/10">
+                <ShoppingCart className="h-[22px] w-[22px] text-[#1668E8]" />
               </div>
 
               <div className="flex-1">
@@ -55,7 +55,7 @@ export default async function OrdiniPage() {
                 </h2>
 
                 <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                  <CircleDashed className="h-4 w-4" />
+                  <CircleDashed className="h-[18px] w-[18px]" />
                   {ordine.stato}
                 </div>
 
