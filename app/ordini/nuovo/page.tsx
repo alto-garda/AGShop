@@ -693,7 +693,7 @@ export default function NuovoOrdinePage() {
 
       {tesseratoOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="flex h-[540px] max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
                 Seleziona tesserato
@@ -892,60 +892,79 @@ export default function NuovoOrdinePage() {
   )}
 
   {kitOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
-          <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className={`flex ${kitId ? "h-[800px]" : "h-[420px]"} max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200`}>
+
+        {!kitId ? (
+          <>
+            <div className="flex h-[60px] shrink-0 items-center justify-between">
               <h2 className="text-xl font-bold">
-                Aggiungi Kit
+                Scegli Kit
               </h2>
 
               <Button
                 size="icon"
                 variant="ghost"
                 className="rounded-full"
-                onClick={() =>
-                  setKitOpen(false)
-                }
+                onClick={() => setKitOpen(false)}
               >
                 <X className="h-5 w-5" />
               </Button>
             </div>
 
-            <div className="space-y-2">
-              {kit.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setKitId(item.id)}
-                  className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left ${
-                    kitId === item.id
-                      ? "border-[#1668E8] bg-[#1668E8]/5"
-                      : "border-border"
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold">
-                      {item.nome}
-                    </p>
+            <div className="min-h-0 flex-1 overflow-y-auto pt-3">
+              <div className="space-y-2">
+                {kit.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setKitId(item.id)}
+                    className="flex w-full items-center gap-3 rounded-2xl border-2 border-border p-4 text-left transition hover:border-[#1668E8] hover:bg-[#1668E8]/5"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">
+                        {item.nome}
+                      </p>
 
-                    <p className="text-sm text-muted-foreground">
-                      €{Number(item.prezzo).toFixed(2)}
-                    </p>
-                  </div>
+                      <p className="text-sm text-muted-foreground">
+                        €{Number(item.prezzo).toFixed(2)}
+                      </p>
+                    </div>
 
-                  {kitId === item.id && (
-                    <Check className="h-5 w-5 text-[#1668E8]" />
-                  )}
-                </button>
-              ))}
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex h-[60px] shrink-0 items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Kit
+                </p>
+
+                <h2 className="text-xl font-bold">
+                  {kit.find((item) => item.id === kitId)?.nome}
+                </h2>
+              </div>
+
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full"
+                onClick={() => setKitOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
 
-            {kitId && (
-              <div className="mt-5 space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto pt-5">
+              <div className="space-y-5">
+
                 {kitRighe.some(
-                  (riga) =>
-                    riga.tipo_taglia ===
-                    "abbigliamento"
+                  (riga) => riga.tipo_taglia === "abbigliamento"
                 ) && (
                   <div>
                     <p className="mb-2 text-sm font-semibold">
@@ -953,32 +972,26 @@ export default function NuovoOrdinePage() {
                     </p>
 
                     <div className="grid grid-cols-4 gap-2">
-                      {TAGLIE_ABBIGLIAMENTO.map(
-                        (item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() =>
-                              setTagliaKit(item)
-                            }
-                            className={`rounded-xl border-2 py-3 text-sm font-semibold ${
-                              tagliaKit === item
-                                ? "border-[#1668E8] bg-[#1668E8] text-white"
-                                : "border-border"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      )}
+                      {TAGLIE_ABBIGLIAMENTO.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setTagliaKit(item)}
+                          className={`rounded-xl border-2 py-3 text-sm font-semibold transition ${
+                            tagliaKit === item
+                              ? "border-[#1668E8] bg-[#1668E8] text-white"
+                              : "border-border hover:border-[#1668E8]"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
                 {kitRighe.some(
-                  (riga) =>
-                    riga.tipo_taglia ===
-                    "calzettoni"
+                  (riga) => riga.tipo_taglia === "calzettoni"
                 ) && (
                   <div>
                     <p className="mb-2 text-sm font-semibold">
@@ -986,27 +999,20 @@ export default function NuovoOrdinePage() {
                     </p>
 
                     <div className="grid grid-cols-3 gap-2">
-                      {TAGLIE_CALZETTONI.map(
-                        (item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() =>
-                              setTagliaCalzettoni(
-                                item
-                              )
-                            }
-                            className={`rounded-xl border-2 py-3 text-sm font-semibold ${
-                              tagliaCalzettoni ===
-                              item
-                                ? "border-[#1668E8] bg-[#1668E8] text-white"
-                                : "border-border"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      )}
+                      {TAGLIE_CALZETTONI.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setTagliaCalzettoni(item)}
+                          className={`rounded-xl border-2 py-3 text-sm font-semibold transition ${
+                            tagliaCalzettoni === item
+                              ? "border-[#1668E8] bg-[#1668E8] text-white"
+                              : "border-border hover:border-[#1668E8]"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1034,18 +1040,24 @@ export default function NuovoOrdinePage() {
                   </div>
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={aggiungiKit}
-                  className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
-                >
-                  Aggiungi Kit
-                </Button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+
+            <div className="mt-3 shrink-0">
+              <Button
+                type="button"
+                onClick={aggiungiKit}
+                className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
+              >
+                Aggiungi Kit
+              </Button>
+            </div>
+          </>
+        )}
+
+      </div>
+    </div>
+  )}
     </div>
   );
 }
