@@ -65,7 +65,7 @@ function getIcon(nome: string) {
 export default async function ArticoliPage() {
   const { data: articoli, error } = await supabase
     .from("articoli")
-    .select("id, categoria, nome, costo, attivo")
+    .select("id, categoria, nome, costo, giacenza, attivo")
     .eq("attivo", true)
     .order("nome");
 
@@ -129,7 +129,7 @@ export default async function ArticoliPage() {
       giacenzaReale:
         (giacenzePerArticolo.has(articolo.id)
           ? giacenzePerArticolo.get(articolo.id)
-          : 0) ?? 0,
+          : Number(articolo.giacenza ?? 0)) ?? 0,
     })
   );
 
@@ -204,7 +204,7 @@ export default async function ArticoliPage() {
                           {(
       giacenzePerArticolo.has(articolo.id)
         ? giacenzePerArticolo.get(articolo.id) ?? 0
-        : 0
+        : Number(articolo.giacenza ?? 0)
     )} disponibili
                         </p>
 

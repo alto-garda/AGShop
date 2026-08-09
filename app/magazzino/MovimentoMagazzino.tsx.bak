@@ -14,6 +14,7 @@ type Articolo = {
   id: string;
   nome: string;
   categoria: string;
+  giacenza: number;
 };
 
 type Taglia = {
@@ -42,7 +43,7 @@ export default function MovimentoMagazzino({
     async function load() {
       const { data, error } = await supabase
         .from("articoli")
-        .select("id, nome, categoria")
+        .select("id, nome, categoria, giacenza")
         .eq("attivo", true)
         .order("categoria")
         .order("nome");
@@ -99,7 +100,9 @@ export default function MovimentoMagazzino({
     }
 
     const disponibilita =
-      taglie.find((item) => item.taglia === taglia)?.giacenza ?? 0;
+      taglie.length > 0
+        ? taglie.find((item) => item.taglia === taglia)?.giacenza ?? 0
+        : articolo?.giacenza ?? 0;
 
     if (tipo === "scarico" && qty > disponibilita) {
       alert(`Giacenza disponibile: ${disponibilita}`);
@@ -267,7 +270,7 @@ export default function MovimentoMagazzino({
                     (item) => item.taglia === taglia
                   )?.giacenza ?? 0
                 : "—"
-              : 0}
+              : articolo?.giacenza ?? 0}
           </p>
 
         </Card>

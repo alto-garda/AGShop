@@ -397,7 +397,7 @@ export default function NuovoOrdinePage() {
         .from("ordini")
         .insert({
           tesserato_id: tesseratoId,
-          stato: "in_attesa",
+          stato: "inserito",
         })
         .select("id")
         .single();
@@ -423,32 +423,6 @@ export default function NuovoOrdinePage() {
 
       if (righeError) {
         throw new Error(righeError.message);
-      }
-
-      const { data: nuovoStato, error: statoError } =
-        await supabase.rpc(
-          "ricalcola_stato_ordine",
-          {
-            p_ordine_id: ordine.id,
-          }
-        );
-
-      if (statoError || !nuovoStato) {
-        throw new Error(
-          statoError?.message ??
-            "Errore nel calcolo dello stato dell'ordine."
-        );
-      }
-
-      const { error: statoUpdateError } = await supabase
-        .from("ordini")
-        .update({
-          stato: nuovoStato,
-        })
-        .eq("id", ordine.id);
-
-      if (statoUpdateError) {
-        throw new Error(statoUpdateError.message);
       }
 
       const kitGroups = new Map<
@@ -805,7 +779,7 @@ export default function NuovoOrdinePage() {
                       <button
                         key={item.taglia}
                         type="button"
-                        
+                        disabled={item.giacenza <= 0}
                         onClick={() =>
                           setTagliaSelezionata(
                             item.taglia
