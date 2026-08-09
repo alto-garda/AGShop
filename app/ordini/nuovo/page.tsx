@@ -242,15 +242,19 @@ export default function NuovoOrdinePage() {
     0
   );
 
-  const totaleKit = righe.reduce((sum, riga) => {
-    if (!riga.kitId) return sum;
+  const totaleKit = Array.from(
+  new Set(
+    righe
+      .filter((riga) => riga.kitId)
+      .map((riga) => riga.kitId!)
+  )
+).reduce((sum, kitId) => {
+  const kitItem = kit.find(
+    (item) => item.id === kitId
+  );
 
-    const kitItem = kit.find(
-      (item) => item.id === riga.kitId
-    );
-
-    return sum + Number(kitItem?.prezzo ?? 0);
-  }, 0);
+  return sum + Number(kitItem?.prezzo ?? 0);
+}, 0);
 
   const totaleOrdine = totaleArticoli + totaleKit;
 
@@ -693,7 +697,7 @@ export default function NuovoOrdinePage() {
 
       {tesseratoOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="flex h-[540px] max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
                 Seleziona tesserato
