@@ -35,6 +35,7 @@ export default async function OrdinePage({ params }: Props) {
       ),
       ordine_righe (
         id,
+        articolo_id,
         taglia,
         quantita,
         quantita_consegnata,
@@ -51,13 +52,81 @@ export default async function OrdinePage({ params }: Props) {
 
   const righe = data.ordine_righe ?? [];
 
-  const totale = righe.reduce(
-    (sum: number, riga: any) =>
-      sum +
-      Number(riga.articoli?.costo ?? 0) *
-        Number(riga.quantita ?? 0),
+  const { data: ordineKit, error: ordineKitError } =
+    await supabase
+      .from("ordine_kit")
+      .select(`
+        id,
+        quantita,
+        prezzo_unitario,
+        kit_id
+      `)
+      .eq("ordine_id", id);
+
+  if (ordineKitError) {
+    throw new Error(ordineKitError.message);
+  }
+
+  const kitIds = (ordineKit ?? []).map(
+    (item: any) => item.kit_id
+  );
+
+  const { data: kitData, error: kitError } =
+    kitIds.length
+      ? await supabase
+          .from("kit")
+          .select("id, nome")
+          .in("id", kitIds)
+      : { data: [], error: null };
+
+  if (kitError) {
+    throw new Error(kitError.message);
+  }
+
+  const kitMap = new Map(
+    (kitData ?? []).map((item: any) => [
+      item.id,
+      item.nome,
+    ])
+  );
+
+  const kitArticoloIds = new Set<string>();
+
+  for (const item of ordineKit ?? []) {
+    const { data: componenti } = await supabase
+      .from("kit_righe")
+      .select("articolo_id")
+      .eq("kit_id", item.kit_id);
+
+    for (const componente of componenti ?? []) {
+      kitArticoloIds.add(componente.articolo_id);
+    }
+  }
+
+  const totaleArticoli = righe.reduce(
+    (sum: number, riga: any) => {
+      if (kitArticoloIds.has(riga.articolo_id)) {
+        return sum;
+      }
+
+      return (
+        sum +
+        Number(riga.articoli?.costo ?? 0) *
+          Number(riga.quantita ?? 0)
+      );
+    },
     0
   );
+
+  const totaleKit = (ordineKit ?? []).reduce(
+    (sum: number, item: any) =>
+      sum +
+      Number(item.prezzo_unitario ?? 0) *
+        Number(item.quantita ?? 0),
+    0
+  );
+
+  const totale = totaleArticoli + totaleKit;
 
   return (
     <div className="flex flex-col gap-4">
@@ -221,8 +290,7 @@ export default async function OrdinePage({ params }: Props) {
         </Card>
       )}
 
-      {data.stato !== "pagato" &&
-        righe.some(
+      {righe.some(
           (riga: any) =>
             Number(riga.quantita_consegnata ?? 0) <
             Number(riga.quantita ?? 0)
@@ -231,6 +299,7 @@ export default async function OrdinePage({ params }: Props) {
             ordineId={id}
             righe={righe.map((riga: any) => ({
               id: riga.id,
+              articoloId: riga.articolo_id,
               articolo: riga.articoli
                 ? { nome: riga.articoli.nome }
                 : null,
@@ -243,22 +312,28 @@ export default async function OrdinePage({ params }: Props) {
           />
         )}
 
-      {data.stato === "consegnato" && (
-        <SegnaPagato ordineId={id} />
-      )}
+      {data.stato === "consegnato" &&
+        !data.metodo_pagamento && (
+          <SegnaPagato ordineId={id} />
+        )}
 
-      {data.stato === "pagato" && (
+      {data.metodo_pagamento && (
         <Card className="rounded-3xl border-2 border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950/30">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
 
             <div>
               <p className="font-semibold">
-                Ordine pagato
+                Pagato
               </p>
 
               <p className="text-sm text-green-700 dark:text-green-400">
-                Il pagamento è stato registrato.
+                Metodo:{" "}
+                {data.metodo_pagamento === "pos"
+                  ? "POS"
+                  : data.metodo_pagamento === "contanti"
+                    ? "Contanti"
+                    : "Bonifico"}
               </p>
             </div>
           </div>

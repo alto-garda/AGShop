@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PackageCheck } from "lucide-react";
+import { Check, PackageCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase-browser";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 type Riga = {
   id: string;
+  articoloId: string;
   articolo: {
     nome: string;
   } | null;
@@ -30,86 +30,92 @@ export function GestisciConsegna({
   const router = useRouter();
   const supabase = createClient();
 
-  const [quantita, setQuantita] = useState<Record<string, string>>(
-    Object.fromEntries(
-      righe.map((riga) => [
-        riga.id,
-        String(
-          Math.max(
-            0,
-            riga.quantita - riga.quantita_consegnata
-          )
-        ),
-      ])
-    )
-  );
+  const [disponibilita, setDisponibilita] = useState<
+    Record<string, number>
+  >({});
+  const [consegnate, setConsegnate] = useState<
+    Record<string, boolean>
+  >({});
+  const [saving, setSaving] = useState<string | null>(null);
 
-  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    async function caricaGiacenze() {
+      const articoloIds = [
+        ...new Set(righe.map((riga) => riga.articoloId)),
+      ];
 
-  async function consegna() {
+      if (!articoloIds.length) return;
+
+      const { data, error } = await supabase
+        .from("articolo_taglie")
+        .select("articolo_id, taglia, giacenza")
+        .in("articolo_id", articoloIds);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      const map: Record<string, number> = {};
+
+      for (const item of data ?? []) {
+        const key = `${item.articolo_id}:${item.taglia ?? "Unica"}`;
+        map[key] = Number(item.giacenza ?? 0);
+      }
+
+      setDisponibilita(map);
+    }
+
+    caricaGiacenze();
+  }, [righe, supabase]);
+
+  async function consegna(riga: Riga) {
     if (saving) return;
 
-    const righeDaConsegnare = righe
-      .map((riga) => ({
-        riga,
-        valore: Number(quantita[riga.id] ?? 0),
-      }))
-      .filter((item) => item.valore > 0);
+    const residua =
+      riga.quantita - riga.quantita_consegnata;
 
-    if (righeDaConsegnare.length === 0) {
-      alert("Inserisci almeno una quantità da consegnare.");
+    const key = `${riga.articoloId}:${riga.taglia ?? "Unica"}`;
+    const disponibile = disponibilita[key] ?? 0;
+
+    if (residua <= 0) return;
+
+    if (disponibile < residua) {
+      alert(
+        `Giacenza insufficiente. Disponibili: ${disponibile}. Da consegnare: ${residua}.`
+      );
       return;
     }
 
-    for (const item of righeDaConsegnare) {
-      const residua =
-        item.riga.quantita -
-        item.riga.quantita_consegnata;
-
-      if (item.valore > residua) {
-        alert(
-          `${item.riga.articolo?.nome}: massimo ${residua} pezzi.`
-        );
-        return;
-      }
-    }
-
-    setSaving(true);
+    setSaving(riga.id);
 
     try {
-      for (const item of righeDaConsegnare) {
-        const { error } = await supabase.rpc(
-          "consegna_riga_ordine",
+      const { error } = await supabase.rpc(
+        "consegna_riga_ordine",
+        {
+          p_riga_id: riga.id,
+          p_quantita: residua,
+        }
+      );
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const { data: nuovoStato, error: statoError } =
+        await supabase.rpc(
+          "ricalcola_stato_ordine",
           {
-            p_riga_id: item.riga.id,
-            p_quantita: item.valore,
+            p_ordine_id: ordineId,
           }
         );
 
-        if (error) {
-          throw new Error(error.message);
-        }
+      if (statoError || !nuovoStato) {
+        throw new Error(
+          statoError?.message ??
+            "Errore nel calcolo dello stato dell'ordine."
+        );
       }
-
-      const { data: aggiornate, error: righeError } =
-        await supabase
-          .from("ordine_righe")
-          .select("quantita, quantita_consegnata")
-          .eq("ordine_id", ordineId);
-
-      if (righeError) {
-        throw new Error(righeError.message);
-      }
-
-      const tutteConsegnate =
-        aggiornate?.every(
-          (riga) =>
-            riga.quantita_consegnata >= riga.quantita
-        ) ?? false;
-
-      const nuovoStato = tutteConsegnate
-        ? "consegnato"
-        : "parziale";
 
       const { error: ordineError } = await supabase
         .from("ordini")
@@ -122,6 +128,11 @@ export function GestisciConsegna({
         throw new Error(ordineError.message);
       }
 
+      setConsegnate((current) => ({
+        ...current,
+        [riga.id]: true,
+      }));
+
       router.refresh();
     } catch (error) {
       alert(
@@ -130,78 +141,119 @@ export function GestisciConsegna({
           : "Errore durante la consegna."
       );
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
+  }
+
+  const righeDaConsegnare = righe.filter(
+    (riga) =>
+      riga.quantita - riga.quantita_consegnata > 0
+  );
+
+  if (!righeDaConsegnare.length) {
+    return null;
   }
 
   return (
     <Card className="rounded-3xl border-2 p-5">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1668E8]/10">
+          <PackageCheck className="h-5 w-5 text-[#1668E8]" />
+        </div>
 
-      <h2 className="mb-4 text-lg font-bold">
-        Gestisci consegna
-      </h2>
+        <div>
+          <h2 className="text-lg font-bold">
+            Consegna
+          </h2>
+
+          <p className="text-sm text-muted-foreground">
+            Verifica disponibilità e consegna gli articoli.
+          </p>
+        </div>
+      </div>
 
       <div className="space-y-3">
-
-        {righe.map((riga) => {
+        {righeDaConsegnare.map((riga) => {
           const residua =
             riga.quantita -
             riga.quantita_consegnata;
 
-          if (residua <= 0) return null;
+          const key = `${riga.articoloId}:${riga.taglia ?? "Unica"}`;
+          const disponibile =
+            disponibilita[key] ?? 0;
+
+          const pronta = disponibile >= residua;
+          const completata = consegnate[riga.id];
 
           return (
             <div
               key={riga.id}
               className="rounded-2xl border-2 p-4"
             >
-
-              <div className="mb-3">
-
+              <div className="mb-3 min-w-0">
                 <p className="font-semibold">
                   {riga.articolo?.nome}
                 </p>
 
-                <p className="text-sm text-muted-foreground">
-                  {riga.taglia
-                    ? `Taglia ${riga.taglia} · `
-                    : ""}
-                  Da consegnare: {residua}
-                </p>
-
+                {riga.taglia && (
+                  <p className="text-sm text-muted-foreground">
+                    Taglia {riga.taglia}
+                  </p>
+                )}
               </div>
 
-              <Input
-                type="number"
-                min="0"
-                max={residua}
-                value={quantita[riga.id] ?? "0"}
-                onChange={(e) =>
-                  setQuantita({
-                    ...quantita,
-                    [riga.id]: e.target.value,
-                  })
-                }
-                placeholder="Quantità consegnata"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-muted p-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    Disponibili
+                  </p>
 
+                  <p className="mt-1 text-xl font-bold">
+                    {disponibile}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-muted p-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    Da consegnare
+                  </p>
+
+                  <p className="mt-1 text-xl font-bold">
+                    {residua}
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => consegna(riga)}
+                disabled={
+                  !pronta ||
+                  !!saving ||
+                  completata
+                }
+                className={`mt-3 h-14 w-full rounded-2xl text-base font-bold ${
+                  pronta
+                    ? "bg-[#1668E8] hover:bg-[#0F5BD6]"
+                    : "cursor-not-allowed opacity-35"
+                }`}
+              >
+                {saving === riga.id
+                  ? "Consegna..."
+                  : completata
+                    ? "CONSEGNA ✓"
+                    : pronta
+                      ? "CONSEGNA"
+                      : "NON DISPONIBILE"}
+                
+                {completata && (
+                  <Check className="ml-2 h-5 w-5" />
+                )}
+              </Button>
             </div>
           );
         })}
-
       </div>
-
-      <Button
-        onClick={consegna}
-        disabled={saving}
-        className="mt-4 h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
-      >
-        <PackageCheck className="mr-3 h-5 w-5" />
-        {saving
-          ? "Registrazione..."
-          : "Registra Consegna"}
-      </Button>
-
     </Card>
   );
 }

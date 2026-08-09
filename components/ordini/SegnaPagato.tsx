@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import {
+  Banknote,
+  CreditCard,
+  Landmark,
+} from "lucide-react";
 
 import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
+
+type MetodoPagamento =
+  | "contanti"
+  | "pos"
+  | "bonifico";
 
 export function SegnaPagato({
   ordineId,
@@ -16,7 +25,9 @@ export function SegnaPagato({
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
 
-  async function segnaPagato() {
+  async function segnaPagato(
+    metodo: MetodoPagamento
+  ) {
     if (saving) return;
 
     setSaving(true);
@@ -24,7 +35,7 @@ export function SegnaPagato({
     const { error } = await supabase
       .from("ordini")
       .update({
-        stato: "pagato",
+        metodo_pagamento: metodo,
       })
       .eq("id", ordineId);
 
@@ -38,13 +49,39 @@ export function SegnaPagato({
   }
 
   return (
-    <Button
-      onClick={segnaPagato}
-      disabled={saving}
-      className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
-    >
-      <CheckCircle2 className="mr-3 h-5 w-5" />
-      {saving ? "Salvataggio..." : "Segna come pagato"}
-    </Button>
+    <div className="space-y-3">
+      <p className="text-sm font-semibold">
+        Segna pagamento
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          onClick={() => segnaPagato("contanti")}
+          disabled={saving}
+          className="h-14 rounded-2xl"
+        >
+          <Banknote className="mr-2 h-5 w-5" />
+          Contanti
+        </Button>
+
+        <Button
+          onClick={() => segnaPagato("pos")}
+          disabled={saving}
+          className="h-14 rounded-2xl"
+        >
+          <CreditCard className="mr-2 h-5 w-5" />
+          POS
+        </Button>
+
+        <Button
+          onClick={() => segnaPagato("bonifico")}
+          disabled={saving}
+          className="h-14 rounded-2xl"
+        >
+          <Landmark className="mr-2 h-5 w-5" />
+          Bonifico
+        </Button>
+      </div>
+    </div>
   );
 }
