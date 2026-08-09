@@ -8,15 +8,17 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default async function DashboardPage() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createClient();
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
   let nome = "Andrea";
 
@@ -27,7 +29,7 @@ export default async function DashboardPage() {
       .eq("id", user.id)
       .single();
 
-    nome = profile?.nome ?? "Andrea";
+    nome = profile?.nome ?? user.user_metadata?.nome ?? "Utente";
   }
 
 const [
