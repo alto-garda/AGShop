@@ -52,6 +52,27 @@ export default async function OrdinePage({ params }: Props) {
 
   const righe = data.ordine_righe ?? [];
 
+    const articoloIds = [
+      ...new Set(
+        righe.map((riga: any) => riga.articolo_id)
+      ),
+    ];
+
+    const { data: disponibilita } =
+      articoloIds.length
+        ? await supabase
+            .from("articolo_taglie")
+            .select("articolo_id, taglia, giacenza")
+            .in("articolo_id", articoloIds)
+        : { data: [] };
+
+    const disponibilitaMap = new Map(
+      (disponibilita ?? []).map((item: any) => [
+        `${item.articolo_id}:${item.taglia}`,
+        Number(item.giacenza ?? 0),
+      ])
+    );
+
   const { data: ordineKit, error: ordineKitError } =
     await supabase
       .from("ordine_kit")
@@ -178,84 +199,92 @@ export default async function OrdinePage({ params }: Props) {
 
             {righe.map((riga: any) => {
               const prezzo = Number(
-                riga.articoli?.costo ?? 0
-              );
+            riga.articoli?.costo ?? 0
+          );
 
-              const quantita = Number(
-                riga.quantita ?? 0
-              );
+          const quantita = Number(
+            riga.quantita ?? 0
+          );
 
-              const consegnata = Number(
-                riga.quantita_consegnata ?? 0
-              );
+          const consegnata = Number(
+            riga.quantita_consegnata ?? 0
+          );
 
-              const residua = Math.max(
-                0,
-                quantita - consegnata
-              );
+          const residua = Math.max(
+            0,
+            quantita - consegnata
+          );
 
-              return (
-                <div
-                  key={riga.id}
-                  className="rounded-2xl border-2 p-4"
-                >
+          const disponibilitaRiga =
+            disponibilitaMap.get(
+              `${riga.articolo_id}:${riga.taglia ?? "Unica"}`
+            ) ?? 0;
 
-                  <div className="flex items-start justify-between gap-3">
+          return (
+            <div
+              key={riga.id}
+              className="rounded-2xl border-2 p-4"
+            >
 
-                    <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#1668E8]">
+                {riga.articoli?.categoria ?? "Articolo"}
+              </p>
 
-                      <p className="font-semibold">
-                        {riga.articoli?.nome}
-                      </p>
+              <p className="mt-1 text-lg font-bold">
+                {riga.articoli?.nome}
+              </p>
 
-                      {riga.taglia && (
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                          Taglia {riga.taglia}
-                        </p>
-                      )}
+              {riga.taglia && (
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Taglia {riga.taglia}
+                </p>
+              )}
 
-                    </div>
+              <div className="mt-4 grid grid-cols-3 gap-2">
 
-                    <p className="shrink-0 font-bold">
-                      €{(prezzo * quantita).toFixed(2)}
-                    </p>
+                <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Disponibili
+                  </p>
 
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-
-                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Ordinata
-                      </p>
-                      <p className="mt-1 font-bold">
-                        {quantita}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Consegnata
-                      </p>
-                      <p className="mt-1 font-bold">
-                        {consegnata}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Da consegnare
-                      </p>
-                      <p className="mt-1 font-bold">
-                        {residua}
-                      </p>
-                    </div>
-
-                  </div>
-
+                  <p className="mt-1 text-xl font-bold">
+                    {disponibilitaRiga}
+                  </p>
                 </div>
-              );
-            })}
+
+                <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Da consegnare
+                  </p>
+
+                  <p className="mt-1 text-xl font-bold">
+                    {residua}
+                  </p>
+                </div>
+
+                <GestisciConsegna
+                  ordineId={id}
+                  riga={{
+                    id: riga.id,
+                    articolo: riga.articoli
+                      ? { nome: riga.articoli.nome }
+                      : null,
+                    taglia: riga.taglia,
+                    quantita,
+                    quantita_consegnata: consegnata,
+                    disponibilita: disponibilitaRiga,
+                  }}
+                />
+
+              </div>
+
+              <div className="mt-3 text-right text-sm text-muted-foreground">
+                €{(prezzo * quantita).toFixed(2)}
+              </div>
+
+            </div>
+          );
+        })}
 
           </div>
         ) : (
@@ -289,30 +318,7 @@ export default async function OrdinePage({ params }: Props) {
           </p>
         </Card>
       )}
-
-      {righe.some(
-          (riga: any) =>
-            Number(riga.quantita_consegnata ?? 0) <
-            Number(riga.quantita ?? 0)
-        ) && (
-          <GestisciConsegna
-            ordineId={id}
-            righe={righe.map((riga: any) => ({
-              id: riga.id,
-              articoloId: riga.articolo_id,
-              articolo: riga.articoli
-                ? { nome: riga.articoli.nome }
-                : null,
-              taglia: riga.taglia,
-              quantita: Number(riga.quantita ?? 0),
-              quantita_consegnata: Number(
-                riga.quantita_consegnata ?? 0
-              ),
-            }))}
-          />
-        )}
-
-      {data.stato === "consegnato" &&
+{data.stato === "consegnato" &&
         !data.metodo_pagamento && (
           <SegnaPagato ordineId={id} />
         )}
