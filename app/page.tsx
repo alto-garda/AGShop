@@ -78,7 +78,7 @@ export default async function DashboardPage() {
           </h2>
 
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            ASD Alto Garda
+            Gestione Magazzino Alto Garda
           </p>
         </div>
       </div>
@@ -114,7 +114,14 @@ export default async function DashboardPage() {
 
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <Link href="/ordini/lets-go">
+    <Button className="h-14 w-full rounded-2xl bg-red-600 text-base font-semibold text-white shadow-lg hover:bg-red-700">
+      <ShoppingCart className="mr-3 h-5 w-5 text-white" />
+      Ordine Let's Go
+    </Button>
+  </Link>
+
+  <div className="grid grid-cols-2 gap-2">
 
         <Link href="/ordini?stato=in_attesa" className="order-1">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">

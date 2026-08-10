@@ -52,7 +52,7 @@ export default async function OrdiniPage({
 
   const { data: ordini } = await query
     .order("created_at", {
-      ascending: false,
+      ascending: true,
     });
 
   const ordiniTipizzati = (ordini ?? []) as Ordine[];
@@ -109,10 +109,17 @@ export default async function OrdiniPage({
                     {ordine.tesserati?.nome}
                   </h2>
 
-                  <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                    <CircleDashed className="h-[18px] w-[18px]" />
-                    {statoLabel}
-                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-3 text-sm text-slate-500">
+                <div className="flex items-center gap-2">
+                  <CircleDashed className="h-[18px] w-[18px]" />
+                  {statoLabel}
+                </div>
+
+                <span className="text-xs text-slate-400">
+                  {new Date(ordine.created_at).toLocaleDateString("it-IT")}
+                </span>
+              </div>
+
 
                 </div>
 

@@ -11,11 +11,11 @@ const pages: Record<string, string> = {
   "/": "Dashboard",
   "/articoli": "Articoli",
   "/ordini": "Ordini",
-"/ordini/nuovo": "Nuovo Ordine",
+  "/ordini/nuovo": "Nuovo Ordine",
   "/tesserati": "Tesserati",
   "/magazzino": "Magazzino",
-"/magazzino/carico": "Carico",
-"/magazzino/scarico": "Scarico",
+  "/magazzino/carico": "Carico",
+  "/magazzino/scarico": "Scarico",
   "/impostazioni": "Impostazioni",
   "/profilo": "Profilo",
 };
@@ -23,23 +23,28 @@ const pages: Record<string, string> = {
 export function Header() {
   const pathname = usePathname();
 
+  const titolo =
+    pathname === "/ordini/lets-go"
+      ? "Let's Go"
+      : pathname.match(/^\/ordini\/[^/]+$/)
+        ? "Dettaglio Ordine"
+        : pages[pathname] ?? "AGShop";
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-[#1668E8] px-4 py-2 text-white shadow-sm">
-      <div className="relative flex h-10 items-center justify-between">
+      <div className="relative flex items-center justify-between">
+
         <Image
           src="/logo.png"
           alt="ASD Alto Garda"
-          width={36}
-          height={36}
-          priority
-          className="h-9 w-9 object-contain"
+          width={40}
+          height={40}
+          className="h-10 w-10 object-contain"
         />
 
         <div className="absolute left-1/2 -translate-x-1/2">
           <Badge className="rounded-full border border-white/30 bg-white px-3 py-1 text-xs font-semibold text-[#1668E8]">
-            {pathname.match(/^\/ordini\/[^/]+$/)
-              ? "Dettaglio Ordine"
-              : pages[pathname] ?? "AGShop"}
+            {titolo}
           </Badge>
         </div>
 
@@ -48,6 +53,7 @@ export function Header() {
             locale: it,
           })}
         </span>
+
       </div>
     </header>
   );

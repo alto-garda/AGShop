@@ -32,8 +32,37 @@ export default async function ArticoloPage({ params }: Props) {
   const { data: taglie } = await supabase
     .from("articolo_taglie")
     .select("*")
-    .eq("articolo_id", id)
-    .order("taglia");
+    .eq("articolo_id", id);
+
+const ordineTaglie = [
+  "4XS",
+  "3XS",
+  "2XS",
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "2XL",
+  "3XL",
+  "4XL",
+  "5XL",
+  "Unica",
+];
+
+taglie?.sort((a, b) => {
+  const indiceA = ordineTaglie.indexOf(a.taglia);
+  const indiceB = ordineTaglie.indexOf(b.taglia);
+
+  if (indiceA === -1 && indiceB === -1) {
+    return a.taglia.localeCompare(b.taglia);
+  }
+
+  if (indiceA === -1) return 1;
+  if (indiceB === -1) return -1;
+
+  return indiceA - indiceB;
+});
 
   const totaleGiacenza = (taglie ?? []).reduce(
     (totale, item) => totale + (item.giacenza ?? 0),
