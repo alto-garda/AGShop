@@ -172,7 +172,7 @@ export default async function ArticoliPage() {
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-3">
 
             {gruppo.articoli.map((articolo) => {
               const Icon = getIcon(articolo.nome);
@@ -182,7 +182,7 @@ export default async function ArticoliPage() {
                   key={articolo.id}
                   href={`/articoli/${articolo.id}`}
                 >
-                  <Card className="rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
+                  <Card className="block rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
 
                     <div className="flex items-center gap-3">
 
@@ -247,7 +247,7 @@ export default async function ArticoliPage() {
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-3">
 
           <Card className="rounded-2xl border p-3 shadow-sm">
             <div className="flex items-center gap-3">

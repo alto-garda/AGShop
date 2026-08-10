@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  Check,
   ArrowLeft,
   ShoppingCart,
   CircleDashed,
@@ -52,7 +53,26 @@ export default async function OrdinePage({ params }: Props) {
 
   if (!data) notFound();
 
-  const righe = data.ordine_righe ?? [];
+  const righe = [...(data.ordine_righe ?? [])].sort((a: any, b: any) => {
+    const categoriaA = String(a.articoli?.categoria ?? "").toLocaleLowerCase("it");
+    const categoriaB = String(b.articoli?.categoria ?? "").toLocaleLowerCase("it");
+
+    const ordineCategorie: Record<string, number> = {
+      rappresentanza: 0,
+      allenamento: 1,
+      merchandising: 2,
+    };
+
+    const ordineA = ordineCategorie[categoriaA] ?? 99;
+    const ordineB = ordineCategorie[categoriaB] ?? 99;
+
+    if (ordineA !== ordineB) return ordineA - ordineB;
+
+    const nomeA = String(a.articoli?.nome ?? "").toLocaleLowerCase("it");
+    const nomeB = String(b.articoli?.nome ?? "").toLocaleLowerCase("it");
+
+    return nomeA.localeCompare(nomeB, "it");
+  });
 
     const articoloIds = [
       ...new Set(
@@ -126,30 +146,7 @@ export default async function OrdinePage({ params }: Props) {
     }
   }
 
-  const totaleArticoli = righe.reduce(
-    (sum: number, riga: any) => {
-      if (kitArticoloIds.has(riga.articolo_id)) {
-        return sum;
-      }
-
-      return (
-        sum +
-        Number(riga.articoli?.costo ?? 0) *
-          Number(riga.quantita ?? 0)
-      );
-    },
-    0
-  );
-
-  const totaleKit = (ordineKit ?? []).reduce(
-    (sum: number, item: any) =>
-      sum +
-      Number(item.prezzo_unitario ?? 0) *
-        Number(item.quantita ?? 0),
-    0
-  );
-
-  const totale = totaleArticoli + totaleKit;
+  const totale = Number(data.totale ?? 0);
 
   return (
     <div className="flex flex-col gap-4">
@@ -206,67 +203,89 @@ export default async function OrdinePage({ params }: Props) {
 
           return (
             <div
-              key={riga.id}
-              className="rounded-2xl border-2 p-3"
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wide text-[#1668E8]">
-                {riga.articoli?.categoria}
-              </p>
+                key={riga.id}
+                className={`overflow-hidden rounded-2xl border-2 transition-all duration-500 ${
+                  residua <= 0
+                    ? "border-green-200/70 bg-green-50/40 p-2 dark:border-green-900/40 dark:bg-green-950/10"
+                    : "p-3"
+                }`}
+              >
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2 min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#1668E8]">
+                      {riga.articoli?.categoria}
+                    </p>
 
-              <div className="grid grid-cols-3 gap-2">
-                <p className="col-span-2 flex min-h-[40px] items-center text-base font-bold leading-tight">
-                  {riga.articoli?.nome}
-                </p>
+                    <p className="mt-1 text-base font-bold leading-tight">
+                      {riga.articoli?.nome}
+                    </p>
+                  </div>
 
-                <div className="flex min-h-[40px] items-center justify-center rounded-xl bg-black px-2 text-base font-bold text-white">
-                  {riga.taglia ?? "—"}
+                  <div
+                    className={`flex min-h-[40px] items-center justify-center rounded-xl text-base font-bold transition-all duration-500 ${
+                      residua <= 0
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                        : "bg-black text-white"
+                    }`}
+                  >
+                    {residua <= 0 ? (
+                      <Check className="h-5 w-5" />
+                    ) : (
+                      riga.taglia ?? "—"
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className={`grid grid-cols-3 gap-2 transition-all duration-500 ${
+                    residua <= 0
+                      ? "mt-0 max-h-0 overflow-hidden opacity-0"
+                      : "mt-2 max-h-40 opacity-100"
+                  }`}
+                >
+                  <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+                    <p className="text-[9px] font-bold leading-none text-muted-foreground">
+                      DISPONIBILI
+                    </p>
+
+                    <div className="mt-1 flex items-center gap-2">
+                      <Package className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-xl font-bold leading-none">
+                        {disponibilitaRiga}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+                    <p className="text-[9px] font-bold leading-none text-muted-foreground">
+                      DA CONSEGNARE
+                    </p>
+
+                    <div className="mt-1 flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-xl font-bold leading-none">
+                        {residua}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="min-h-[56px]">
+                    <GestisciConsegna
+                      ordineId={id}
+                      riga={{
+                        id: riga.id,
+                        articolo: riga.articoli
+                          ? { nome: riga.articoli.nome }
+                          : null,
+                        taglia: riga.taglia,
+                        quantita,
+                        quantita_consegnata: consegnata,
+                        disponibilita: disponibilitaRiga,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
-              <p className="text-[9px] font-bold leading-none text-muted-foreground">
-                DISPONIBILI
-              </p>
-
-              <div className="mt-1 flex items-center gap-2">
-                <Package className="h-5 w-5 text-muted-foreground" />
-                <p className="text-xl font-bold leading-none">
-                  {disponibilitaRiga}
-                </p>
-              </div>
-            </div>
-
-                <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
-              <p className="text-[9px] font-bold leading-none text-muted-foreground">
-                DA CONSEGNARE
-              </p>
-
-              <div className="mt-1 flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-muted-foreground" />
-                <p className="text-xl font-bold leading-none">
-                  {residua}
-                </p>
-              </div>
-            </div>
-
-                <div className="min-h-[64px]">
-                  <GestisciConsegna
-                    ordineId={id}
-                    riga={{
-                      id: riga.id,
-                      articolo: riga.articoli
-                        ? { nome: riga.articoli.nome }
-                        : null,
-                      taglia: riga.taglia,
-                      quantita,
-                      quantita_consegnata: consegnata,
-                      disponibilita: disponibilitaRiga,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
           );
         })}
 
@@ -276,19 +295,6 @@ export default async function OrdinePage({ params }: Props) {
             Nessun articolo inserito.
           </p>
         )}
-
-        {righe.length > 0 && (
-          <div className="mt-5 flex items-center justify-between border-t pt-4">
-            <span className="font-semibold">
-              Totale ordine
-            </span>
-
-            <span className="text-2xl font-bold">
-              € {totale.toFixed(2)}
-            </span>
-          </div>
-        )}
-
       </Card>
 
       {data.note && (
@@ -302,33 +308,14 @@ export default async function OrdinePage({ params }: Props) {
           </p>
         </Card>
       )}
-{data.stato === "consegnato" &&
-        !data.metodo_pagamento && (
-          <SegnaPagato ordineId={id} />
-        )}
+<SegnaPagato
+          ordineId={id}
+          totale={totale}
+          metodoPagamento={data.metodo_pagamento}
+          pagatoAt={data.pagato_at}
+        />
 
-      {data.metodo_pagamento && (
-        <Card className="rounded-3xl border-2 border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950/30">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-6 w-6 text-green-600" />
-
-            <div>
-              <p className="font-semibold">
-                Pagato
-              </p>
-
-              <p className="text-sm text-green-700 dark:text-green-400">
-                Metodo:{" "}
-                {data.metodo_pagamento === "pos"
-                  ? "POS"
-                  : data.metodo_pagamento === "contanti"
-                    ? "Contanti"
-                    : "Bonifico"}
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
+      
 
     </div>
   );

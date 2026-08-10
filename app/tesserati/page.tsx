@@ -39,7 +39,7 @@ export default async function TesseratiPage() {
         </Button>
       </Link>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-3">
         {tesserati?.map((tesserato) => {
           const dataNascita = tesserato.data_nascita
             ? new Date(
@@ -52,7 +52,7 @@ export default async function TesseratiPage() {
               key={tesserato.id}
               href={`/tesserati/${tesserato.id}`}
             >
-              <Card className="rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
+              <Card className="block rounded-2xl border p-3 shadow-sm transition hover:border-[#1668E8]">
                 <div className="flex items-center gap-3">
 
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1668E8]/10">

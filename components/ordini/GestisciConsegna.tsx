@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ClipboardList, PackageCheck } from "lucide-react";
+import { Check, PackageCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
@@ -79,30 +79,29 @@ export function GestisciConsegna({
     }
   }
 
+  const colore =
+    riga.disponibilita <= 0
+      ? "bg-red-500 hover:bg-red-500 cursor-not-allowed"
+      : riga.disponibilita < residua
+        ? "bg-amber-400 hover:bg-amber-500"
+        : "bg-green-500 hover:bg-green-600";
+
   return (
     <Button
       type="button"
       onClick={consegnaUno}
-      disabled={
-        saving ||
-        completata ||
-        riga.disponibilita < residua
-      }
-      className={`flex h-full min-h-[56px] w-full rounded-xl px-2 text-white ${
-        riga.disponibilita < residua
-          ? "bg-red-600 hover:bg-red-600 cursor-not-allowed"
-          : "bg-green-600 hover:bg-green-700"
-      }`}
+      disabled={saving || completata || riga.disponibilita <= 0}
+      className={`flex h-full min-h-[56px] w-full rounded-xl px-2 text-white transition-all duration-300 ${colore}`}
     >
       {completata || justDelivered ? (
-        <Check className="h-5 w-5" />
+        <Check className="h-6 w-6 transition-all duration-300" />
       ) : (
-        <>
-          <PackageCheck className="mr-1.5 h-4 w-4" />
-          <span className="text-[10px] font-bold">
+        <div className="flex items-center gap-1.5">
+          <PackageCheck className="h-4 w-4" />
+          <span className="text-xs font-bold">
             CONSEGNA
           </span>
-        </>
+        </div>
       )}
     </Button>
   );

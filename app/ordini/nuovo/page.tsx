@@ -402,6 +402,7 @@ export default function NuovoOrdinePage() {
         .insert({
           tesserato_id: tesseratoId,
           stato: "in_attesa",
+          totale: Number(totaleOrdine.toFixed(2)),
         })
         .select("id")
         .single();
