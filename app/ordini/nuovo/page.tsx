@@ -961,7 +961,7 @@ export default function NuovoOrdinePage() {
 
   {kitOpen && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`flex ${kitId ? "h-[800px]" : "h-[420px]"} max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200`}>
+      <div className={`flex ${kitId ? "h-[620px]" : "h-[420px]"} max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-background p-5 shadow-2xl animate-in zoom-in-95 duration-200`}>
 
         {!kitId ? (
           <>
