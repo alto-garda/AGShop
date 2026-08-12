@@ -414,23 +414,45 @@ export default function NuovoOrdinePage() {
         );
       }
 
-      const righeDaInserire = righe.map((riga) => ({
+      const righeAggregate = new Map<
+    string,
+    {
+      ordine_id: string;
+      articolo_id: string;
+      taglia: string | null;
+      quantita: number;
+      quantita_consegnata: number;
+    }
+  >();
+
+  for (const riga of righe) {
+    const chiave = `${riga.articoloId}:${riga.taglia ?? "Unica"}`;
+    const esistente = righeAggregate.get(chiave);
+
+    if (esistente) {
+      esistente.quantita += riga.quantita;
+    } else {
+      righeAggregate.set(chiave, {
         ordine_id: ordine.id,
         articolo_id: riga.articoloId,
         taglia: riga.taglia,
         quantita: riga.quantita,
         quantita_consegnata: 0,
-      }));
+      });
+    }
+  }
 
-      const { error: righeError } = await supabase
-        .from("ordine_righe")
-        .insert(righeDaInserire);
+  const righeDaInserire = Array.from(righeAggregate.values());
 
-      if (righeError) {
-        throw new Error(righeError.message);
-      }
+  const { error: righeError } = await supabase
+    .from("ordine_righe")
+    .insert(righeDaInserire);
 
-      const { data: nuovoStato, error: statoError } =
+  if (righeError) {
+    throw new Error(righeError.message);
+  }
+
+  const { data: nuovoStato, error: statoError } =
         await supabase.rpc(
           "ricalcola_stato_ordine",
           {
