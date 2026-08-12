@@ -7,7 +7,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,7 @@ type Props = {
 export default async function TesseratoPage({
   params,
 }: Props) {
+  const supabase = await createClient();
   const { id } = await params;
 
   const { data } = await supabase

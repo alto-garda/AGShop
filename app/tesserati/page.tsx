@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Plus, UserRound } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default async function TesseratiPage() {
+  const supabase = await createClient();
   const { data: tesserati, error } = await supabase
     .from("tesserati")
     .select("id, nome, cognome, data_nascita")

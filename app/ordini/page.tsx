@@ -6,7 +6,7 @@ import {
   Archive,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,7 @@ export default async function OrdiniPage({
 }: {
   searchParams: Promise<{ stato?: string }>;
 }) {
+  const supabase = await createClient();
   const { stato } = await searchParams;
 
   let query = supabase

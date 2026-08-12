@@ -5,7 +5,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ArchivioOrdiniPage() {
+  const supabase = await createClient();
   const { data: ordini } = await supabase
     .from("ordini")
     .select(`

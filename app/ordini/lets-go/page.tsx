@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ShoppingCart, PackageOpen } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,6 +34,7 @@ type Mancante = {
 };
 
 export default async function LetsGoPage() {
+  const supabase = await createClient();
   const { data: righe } = await supabase
     .from("ordine_righe")
     .select(`
