@@ -67,9 +67,9 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex h-full flex-col gap-4 overflow-hidden">
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3">
         <Hand className="h-8 w-8 text-[#1668E8]" />
 
         <div>
@@ -83,14 +83,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <Link href="/ordini/nuovo">
+      <Link href="/ordini/nuovo" className="shrink-0">
         <Button className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold text-white shadow-lg hover:bg-[#0F5BD6]">
           <ShoppingCart className="mr-3 h-5 w-5 text-white" />
           Nuovo Ordine
         </Button>
       </Link>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex shrink-0 flex-col gap-3">
 
         <Link href="/magazzino/carico">
           <Button
@@ -114,88 +114,88 @@ export default async function DashboardPage() {
 
       </div>
 
-      <Link href="/ordini/lets-go">
-    <Button className="h-14 w-full rounded-2xl bg-red-600 text-base font-semibold text-white shadow-lg hover:bg-red-700">
-      <ShoppingCart className="mr-3 h-5 w-5 text-white" />
-      Ordine Let's Go
-    </Button>
-  </Link>
+      <Link href="/ordini/lets-go" className="shrink-0">
+        <Button className="h-14 w-full rounded-2xl bg-red-600 text-base font-semibold text-white shadow-lg hover:bg-red-700">
+          <ShoppingCart className="mr-3 h-5 w-5 text-white" />
+          Ordine Let's Go
+        </Button>
+      </Link>
 
-  <div className="grid grid-cols-2 gap-2">
+      <div className="grid shrink-0 grid-cols-2 gap-2">
 
-        <Link href="/ordini?stato=in_attesa" className="order-1">
+        <Link href="/ordini?stato=in_attesa">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-red-600" />
+                <ShoppingCart className="h-4 w-4 text-red-600" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   In Attesa
                 </span>
               </div>
 
-              <div className="mt-2 text-3xl font-bold">
+              <div className="mt-1 text-2xl font-bold">
                 {inAttesa ?? 0}
               </div>
             </div>
 
-            <div className="h-1.5 rounded-b-2xl bg-red-600" />
+            <div className="h-1 rounded-b-2xl bg-red-600" />
           </Card>
         </Link>
 
-        <Link href="/ordini?stato=consegnato" className="order-4">
+        <Link href="/ordini?stato=consegnato">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-blue-600" />
+                <ShoppingCart className="h-4 w-4 text-blue-600" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   Da Pagare
                 </span>
               </div>
 
-              <div className="mt-2 text-3xl font-bold">
+              <div className="mt-1 text-2xl font-bold">
                 {daPagare ?? 0}
               </div>
             </div>
 
-            <div className="h-1.5 rounded-b-2xl bg-blue-600" />
+            <div className="h-1 rounded-b-2xl bg-blue-600" />
           </Card>
         </Link>
 
-        <Link href="/ordini?stato=parziale" className="order-2">
+        <Link href="/ordini?stato=parziale">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-orange-500" />
+                <Truck className="h-4 w-4 text-orange-500" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   Parziali
                 </span>
               </div>
 
-              <div className="mt-2 text-3xl font-bold">
+              <div className="mt-1 text-2xl font-bold">
                 {parziali ?? 0}
               </div>
             </div>
 
-            <div className="h-1.5 rounded-b-2xl bg-orange-500" />
+            <div className="h-1 rounded-b-2xl bg-orange-500" />
           </Card>
         </Link>
 
-        <Link href="/ordini?stato=pronto" className="order-3">
+        <Link href="/ordini?stato=pronto">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   Pronti
                 </span>
               </div>
 
-              <div className="mt-2 text-3xl font-bold">
+              <div className="mt-1 text-2xl font-bold">
                 {pronti ?? 0}
               </div>
             </div>
 
-            <div className="h-1.5 rounded-b-2xl bg-green-500" />
+            <div className="h-1 rounded-b-2xl bg-green-500" />
           </Card>
         </Link>
 

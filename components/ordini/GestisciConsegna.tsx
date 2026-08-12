@@ -90,18 +90,22 @@ export function GestisciConsegna({
     <Button
       type="button"
       onClick={consegnaUno}
-      disabled={saving || completata || riga.disponibilita <= 0}
-      className={`flex h-full min-h-[56px] w-full rounded-xl px-2 text-white transition-all duration-300 ${colore}`}
+      disabled={
+        saving ||
+        completata ||
+        riga.disponibilita <= 0
+      }
+      className={`flex h-12 w-full min-w-0 shrink-0 items-center justify-center rounded-xl px-1.5 text-white transition-all duration-300 ${colore}`}
     >
       {completata || justDelivered ? (
-        <Check className="h-6 w-6 transition-all duration-300" />
+        <Check className="h-5 w-5 shrink-0" />
       ) : (
-        <div className="flex items-center gap-1.5">
-          <PackageCheck className="h-4 w-4" />
-          <span className="text-xs font-bold">
+        <span className="flex min-w-0 items-center justify-center gap-1">
+          <PackageCheck className="h-4 w-4 shrink-0" />
+          <span className="truncate text-[11px] font-bold leading-none">
             CONSEGNA
           </span>
-        </div>
+        </span>
       )}
     </Button>
   );

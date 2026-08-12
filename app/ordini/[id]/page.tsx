@@ -237,7 +237,7 @@ export default async function OrdinePage({ params }: Props) {
                 </div>
 
                 <div
-                  className={`grid grid-cols-3 gap-2 transition-all duration-500 ${
+                  className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_90px] items-stretch gap-2 transition-all duration-500 ${
                     residua <= 0
                       ? "mt-0 max-h-0 overflow-hidden opacity-0"
                       : "mt-2 max-h-40 opacity-100"
@@ -269,7 +269,7 @@ export default async function OrdinePage({ params }: Props) {
                     </div>
                   </div>
 
-                  <div className="min-h-[56px]">
+                  <div className="flex min-h-[56px] min-w-0">
                     <GestisciConsegna
                       ordineId={id}
                       riga={{

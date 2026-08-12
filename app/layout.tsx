@@ -45,25 +45,33 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className={geist.className}>
+      <body className={`${geist.className} min-h-screen overflow-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange={false}
         >
-          <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-            <Header />
+          <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
 
-            <PageTransition>
-              <main className="mx-auto max-w-md px-5 pt-4 pb-24">
-                {children}
-              </main>
-            </PageTransition>
+            <div className="shrink-0">
+              <Header />
+            </div>
 
-            <Footer />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <PageTransition>
+                <main className="mx-auto w-full max-w-md px-5 pt-4 pb-24">
+                  {children}
+                </main>
+              </PageTransition>
+            </div>
+
+            <div className="shrink-0">
+              <Footer />
+            </div>
 
             <Toaster richColors position="top-center" />
+
           </div>
         </ThemeProvider>
       </body>
