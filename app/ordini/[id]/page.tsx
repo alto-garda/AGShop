@@ -11,7 +11,7 @@ import {
 
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,7 @@ type Props = {
 
 export default async function OrdinePage({ params }: Props) {
   const { id } = await params;
+  const supabase = await createClient();
 
   const { data } = await supabase
     .from("ordini")
