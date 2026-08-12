@@ -95,17 +95,22 @@ export function GestisciConsegna({
         completata ||
         riga.disponibilita <= 0
       }
-      className={`flex h-12 w-full min-w-0 shrink-0 items-center justify-center rounded-xl px-1.5 text-white transition-all duration-300 ${colore}`}
+      className={`flex h-full min-h-[96px] w-full min-w-0 flex-col items-center justify-center rounded-xl px-1.5 py-2 text-white transition-all duration-300 ${colore}`}
     >
       {completata || justDelivered ? (
-        <Check className="h-5 w-5 shrink-0" />
-      ) : (
-        <span className="flex min-w-0 items-center justify-center gap-1">
-          <PackageCheck className="h-4 w-4 shrink-0" />
-          <span className="truncate text-[11px] font-bold leading-none">
+        <>
+          <Check className="h-7 w-7" />
+          <span className="mt-2 text-[9px] font-bold uppercase leading-none">
             CONSEGNA
           </span>
-        </span>
+        </>
+      ) : (
+        <>
+          <PackageCheck className="h-7 w-7" />
+          <span className="mt-2 text-[9px] font-bold uppercase leading-none tracking-wide">
+            CONSEGNA
+          </span>
+        </>
       )}
     </Button>
   );

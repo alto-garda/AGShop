@@ -238,39 +238,40 @@ export default async function OrdinePage({ params }: Props) {
                 </div>
 
                 <div
-                  className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_90px] items-stretch gap-2 transition-all duration-500 ${
+                  className={`grid grid-cols-3 gap-2 transition-all duration-500 ${
                     residua <= 0
                       ? "mt-0 max-h-0 overflow-hidden opacity-0"
                       : "mt-2 max-h-40 opacity-100"
                   }`}
                 >
-                  <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
-                    <p className="text-[9px] font-bold leading-none text-muted-foreground">
+                  {/* DISPONIBILI */}
+                  <div className="flex min-w-0 min-h-[96px] flex-col items-center justify-center rounded-xl bg-slate-50 px-1.5 py-2 text-center dark:bg-slate-800">
+                    <p className="text-[9px] font-bold uppercase leading-none tracking-wide text-muted-foreground">
                       DISPONIBILI
                     </p>
 
-                    <div className="mt-1 flex items-center gap-2">
-                      <Package className="h-5 w-5 text-muted-foreground" />
-                      <p className="text-xl font-bold leading-none">
-                        {disponibilitaRiga}
-                      </p>
-                    </div>
+                    <Package className="mt-2 h-7 w-7 text-muted-foreground" />
+
+                    <p className="mt-1 text-2xl font-bold leading-none">
+                      {disponibilitaRiga}
+                    </p>
                   </div>
 
-                  <div className="flex min-h-[56px] flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
-                    <p className="text-[9px] font-bold leading-none text-muted-foreground">
-                      DA CONSEGNARE
+                  {/* IN SOSPESO */}
+                  <div className="flex min-w-0 min-h-[96px] flex-col items-center justify-center rounded-xl bg-slate-50 px-1.5 py-2 text-center dark:bg-slate-800">
+                    <p className="text-[9px] font-bold uppercase leading-none tracking-wide text-muted-foreground">
+                      IN SOSPESO
                     </p>
 
-                    <div className="mt-1 flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-muted-foreground" />
-                      <p className="text-xl font-bold leading-none">
-                        {residua}
-                      </p>
-                    </div>
+                    <ClipboardList className="mt-2 h-7 w-7 text-muted-foreground" />
+
+                    <p className="mt-1 text-2xl font-bold leading-none">
+                      {residua}
+                    </p>
                   </div>
 
-                  <div className="flex min-h-[56px] min-w-0">
+                  {/* CONSEGNA */}
+                  <div className="flex min-w-0 min-h-[96px]">
                     <GestisciConsegna
                       ordineId={id}
                       riga={{
