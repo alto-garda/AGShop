@@ -16,7 +16,7 @@ import {
   Umbrella,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -63,6 +63,7 @@ function getIcon(nome: string) {
 }
 
 export default async function ArticoliPage() {
+  const supabase = await createClient();
   const { data: articoli, error } = await supabase
     .from("articoli")
     .select("id, categoria, nome, costo, attivo")
