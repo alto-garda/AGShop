@@ -1014,7 +1014,30 @@ export default function NuovoOrdinePage() {
                 </p>
 
                 <h2 className="text-xl font-bold">
-                  {kit.find((item) => item.id === kitId)?.nome}
+                      <div className="rounded-2xl bg-muted p-4">
+                  <p className="mb-2 text-sm font-semibold">
+                    Composizione
+                  </p>
+
+                  <div className="space-y-2">
+                    {kitRighe.map((riga) => (
+                      <div
+                        key={riga.id}
+                        className="flex justify-between text-sm"
+                      >
+                        <span>
+                          {riga.articoli?.nome}
+                        </span>
+
+                        <span className="font-semibold">
+                          ×{riga.quantita}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+            {kit.find((item) => item.id === kitId)?.nome}
                 </h2>
               </div>
 
@@ -1112,28 +1135,7 @@ export default function NuovoOrdinePage() {
                   </div>
                 )}
 
-                <div className="rounded-2xl bg-muted p-4">
-                  <p className="mb-2 text-sm font-semibold">
-                    Composizione
-                  </p>
 
-                  <div className="space-y-2">
-                    {kitRighe.map((riga) => (
-                      <div
-                        key={riga.id}
-                        className="flex justify-between text-sm"
-                      >
-                        <span>
-                          {riga.articoli?.nome}
-                        </span>
-
-                        <span className="font-semibold">
-                          ×{riga.quantita}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
               </div>
             </div>
