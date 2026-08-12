@@ -132,32 +132,11 @@ export default async function DashboardPage() {
                   Da Processare
                 </span>
               </div>
-
               <div className="mt-1 text-2xl font-bold">
                 {inAttesa ?? 0}
               </div>
             </div>
-
             <div className="h-1 rounded-b-2xl bg-red-600" />
-          </Card>
-        </Link>
-
-        <Link href="/ordini?stato=consegnato">
-          <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
-            <div className="p-3">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4 text-blue-600" />
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Da Pagare
-                </span>
-              </div>
-
-              <div className="mt-1 text-2xl font-bold">
-                {daPagare ?? 0}
-              </div>
-            </div>
-
-            <div className="h-1 rounded-b-2xl bg-blue-600" />
           </Card>
         </Link>
 
@@ -170,12 +149,10 @@ export default async function DashboardPage() {
                   Parziali
                 </span>
               </div>
-
               <div className="mt-1 text-2xl font-bold">
                 {parziali ?? 0}
               </div>
             </div>
-
             <div className="h-1 rounded-b-2xl bg-orange-500" />
           </Card>
         </Link>
@@ -189,13 +166,28 @@ export default async function DashboardPage() {
                   Pronti
                 </span>
               </div>
-
               <div className="mt-1 text-2xl font-bold">
                 {pronti ?? 0}
               </div>
             </div>
-
             <div className="h-1 rounded-b-2xl bg-green-500" />
+          </Card>
+        </Link>
+
+        <Link href="/ordini?stato=pronto">
+          <Card className="rounded-2xl border-2 border-slate-200 shadow-sm dark:border-slate-700">
+            <div className="p-3">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4 text-blue-600" />
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  Da Pagare
+                </span>
+              </div>
+              <div className="mt-1 text-2xl font-bold">
+                {daPagare ?? 0}
+              </div>
+            </div>
+            <div className="h-1 rounded-b-2xl bg-blue-600" />
           </Card>
         </Link>
 
