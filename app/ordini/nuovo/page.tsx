@@ -112,6 +112,7 @@ export default function NuovoOrdinePage() {
   const [kitId, setKitId] = useState("");
   const [tagliaKit, setTagliaKit] = useState("");
   const [tagliaCalzettoni, setTagliaCalzettoni] = useState("");
+  const [sceltaBorsa, setSceltaBorsa] = useState<"Borsone" | "Zainetto" | "">("");
   const [kitRighe, setKitRighe] = useState<KitRiga[]>([]);
 
   const [righe, setRighe] = useState<Riga[]>([]);
@@ -181,6 +182,7 @@ export default function NuovoOrdinePage() {
       setKitRighe([]);
       setTagliaKit("");
       setTagliaCalzettoni("");
+      setSceltaBorsa("");
 
       if (!kitId) return;
 
@@ -317,6 +319,7 @@ export default function NuovoOrdinePage() {
     setKitRighe([]);
     setTagliaKit("");
     setTagliaCalzettoni("");
+    setSceltaBorsa("");
   }
 
   function aggiungiKit() {
@@ -341,29 +344,66 @@ export default function NuovoOrdinePage() {
     if (richiedeAbbigliamento && !tagliaKit) return;
     if (richiedeCalzettoni && !tagliaCalzettoni) return;
 
-    const nuoveRighe: Riga[] = kitRighe.map((riga) => {
-      if (!riga.articoli) {
-        throw new Error("Componente kit non trovato.");
-      }
+    const isKitCompleto =
+      kitSelezionato.nome.trim().toLowerCase() === "kit completo";
 
-      const taglia =
-        riga.tipo_taglia === "abbigliamento"
-          ? tagliaKit
-          : riga.tipo_taglia === "calzettoni"
-            ? tagliaCalzettoni
-            : null;
+    if (isKitCompleto && !sceltaBorsa) return;
 
-      return {
-        id: crypto.randomUUID(),
-        articoloId: riga.articolo_id,
-        nome: riga.articoli.nome,
-        taglia,
-        quantita: riga.quantita,
-        prezzo: 0,
-        kitId: kitSelezionato.id,
-        kitNome: kitSelezionato.nome,
-      };
-    });
+    const nuoveRighe: Riga[] = kitRighe
+      .filter((riga) => {
+        if (!isKitCompleto || !riga.articoli) {
+          return true;
+        }
+
+        const nome = riga.articoli.nome.trim().toLowerCase();
+
+        const isBorsone = nome.includes("borsone");
+        const isZainetto =
+          nome.includes("zainett") || nome.includes("zaino");
+
+        if (isBorsone || isZainetto) {
+          return (
+            (sceltaBorsa === "Borsone" && isBorsone) ||
+            (sceltaBorsa === "Zainetto" && isZainetto)
+          );
+        }
+
+        return true;
+      })
+      .map((riga) => {
+        if (!riga.articoli) {
+          throw new Error("Componente kit non trovato.");
+        }
+
+        const nome = riga.articoli.nome.trim().toLowerCase();
+
+        const isBorsone =
+          isKitCompleto && nome.includes("borsone");
+
+        const isZainetto =
+          isKitCompleto &&
+          (nome.includes("zainett") || nome.includes("zaino"));
+
+        const taglia =
+          isBorsone || isZainetto
+            ? sceltaBorsa
+            : riga.tipo_taglia === "abbigliamento"
+              ? tagliaKit
+              : riga.tipo_taglia === "calzettoni"
+                ? tagliaCalzettoni
+                : null;
+
+        return {
+          id: crypto.randomUUID(),
+          articoloId: riga.articolo_id,
+          nome: riga.articoli.nome,
+          taglia,
+          quantita: riga.quantita,
+          prezzo: 0,
+          kitId: kitSelezionato.id,
+          kitNome: kitSelezionato.nome,
+        };
+      });
 
     setRighe((current) => [
       ...current,
@@ -375,6 +415,7 @@ export default function NuovoOrdinePage() {
     setKitRighe([]);
     setTagliaKit("");
     setTagliaCalzettoni("");
+    setSceltaBorsa("");
   }
 
   function rimuoviRiga(id: string) {
@@ -1044,6 +1085,33 @@ export default function NuovoOrdinePage() {
                   </div>
                 )}
 
+                {kit.find((item) => item.id === kitId)?.nome
+                  ?.trim()
+                  .toLowerCase() === "kit completo" && (
+                  <div>
+                    <p className="mb-2 text-sm font-semibold">
+                      Borsa
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["Borsone", "Zainetto"] as const).map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setSceltaBorsa(item)}
+                          className={`rounded-xl border-2 py-4 text-sm font-semibold transition ${
+                            sceltaBorsa === item
+                              ? "border-[#1668E8] bg-[#1668E8] text-white"
+                              : "border-border hover:border-[#1668E8]"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="rounded-2xl bg-muted p-4">
                   <p className="mb-2 text-sm font-semibold">
                     Composizione
@@ -1073,6 +1141,12 @@ export default function NuovoOrdinePage() {
             <div className="mt-3 shrink-0">
               <Button
                 type="button"
+                disabled={
+                  kit.find((item) => item.id === kitId)?.nome
+                    ?.trim()
+                    .toLowerCase() === "kit completo" &&
+                  !sceltaBorsa
+                }
                 onClick={aggiungiKit}
                 className="h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold hover:bg-[#0F5BD6]"
               >

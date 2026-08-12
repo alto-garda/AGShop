@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SegnaPagato } from "@/components/ordini/SegnaPagato";
 import { GestisciConsegna } from "@/components/ordini/GestisciConsegna";
-import { CambiaTaglia } from "@/components/ordini/CambiaTaglia";
 import { CambiaStatoOrdine } from "@/components/ordini/CambiaStatoOrdine";
 
 type Props = {
@@ -146,23 +145,6 @@ export default async function OrdinePage({ params }: Props) {
     for (const componente of componenti ?? []) {
       kitArticoloIds.add(componente.articolo_id);
     }
-  }
-
-  const tagliePerArticolo = new Map<
-    string,
-    { taglia: string; giacenza: number }[]
-  >();
-
-  for (const item of disponibilita ?? []) {
-    const lista =
-      tagliePerArticolo.get(item.articolo_id) ?? [];
-
-    lista.push({
-      taglia: item.taglia,
-      giacenza: Number(item.giacenza ?? 0),
-    });
-
-    tagliePerArticolo.set(item.articolo_id, lista);
   }
 
   const totale = Number(data.totale ?? 0);
