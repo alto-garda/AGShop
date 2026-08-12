@@ -240,19 +240,26 @@ export default async function OrdinePage({ params }: Props) {
                     </p>
                   </div>
 
-                  <div
-                    className={`flex min-h-[40px] items-center justify-center rounded-xl text-base font-bold transition-all duration-500 ${
-                      residua <= 0
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                        : "bg-black text-white"
-                    }`}
-                  >
-                    {residua <= 0 ? (
-                      <Check className="h-5 w-5" />
-                    ) : (
-                      riga.taglia ?? "—"
-                    )}
+              <div className="min-w-0">
+                {residua <= 0 ? (
+                  <div className="flex min-h-[40px] items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                    <Check className="h-5 w-5" />
                   </div>
+                ) : (
+                  <CambiaTaglia
+                    ordineId={id}
+                    rigaId={riga.id}
+                    articoloId={riga.articolo_id}
+                    taglia={riga.taglia}
+                    quantitaConsegnata={consegnata}
+                    taglie={
+                      tagliePerArticolo.get(
+                        riga.articolo_id
+                      ) ?? []
+                    }
+                  />
+                )}
+              </div>
                 </div>
 
                 <div

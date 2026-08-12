@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { Check, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase-browser";
@@ -17,17 +18,13 @@ type Props = {
     taglia: string;
     giacenza: number;
   }[];
-  disabilitato?: boolean;
 };
 
 export function CambiaTaglia({
-  ordineId,
   rigaId,
-  articoloId,
   taglia,
   quantitaConsegnata,
   taglie,
-  disabilitato = false,
 }: Props) {
   const supabase = createClient();
 
@@ -35,18 +32,15 @@ export function CambiaTaglia({
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState(taglia);
 
-  const apri = () => {
-    if (disabilitato || quantitaConsegnata > 0) return;
+  function apri() {
+    if (quantitaConsegnata > 0) return;
 
     setSelected(taglia);
     setOpen(true);
-  };
+  }
 
   async function salva() {
-    if (!selected || selected === taglia || saving) {
-      setOpen(false);
-      return;
-    }
+    if (!selected || selected === taglia || saving) return;
 
     setSaving(true);
 
@@ -76,25 +70,13 @@ export function CambiaTaglia({
     }
   }
 
-  return (
-    <>
-      <button
-        type="button"
-        onClick={apri}
-        disabled={disabilitato || quantitaConsegnata > 0}
-        className={`flex min-h-[40px] w-full items-center justify-center rounded-xl px-2 text-base font-bold transition ${
-          disabilitato || quantitaConsegnata > 0
-            ? "cursor-not-allowed bg-slate-200 text-slate-400 dark:bg-slate-800"
-            : "bg-black text-white active:scale-95"
-        }`}
-      >
-        {taglia ?? "—"}
-      </button>
-
+  const popup =
+    typeof document !== "undefined" &&
+    createPortal(
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] flex h-[100dvh] w-[100vw] items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -109,18 +91,9 @@ export function CambiaTaglia({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold">
-                    Cambia taglia
-                  </h2>
-
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Taglia attuale:{" "}
-                    <span className="font-semibold text-foreground">
-                      {taglia ?? "—"}
-                    </span>
-                  </p>
-                </div>
+                <h2 className="text-xl font-bold">
+                  Cambia taglia
+                </h2>
 
                 <Button
                   type="button"
@@ -148,7 +121,9 @@ export function CambiaTaglia({
                       key={item.taglia}
                       type="button"
                       disabled={!disponibile || saving}
-                      onClick={() => setSelected(item.taglia)}
+                      onClick={() =>
+                        setSelected(item.taglia)
+                      }
                       className={`relative rounded-xl border-2 py-4 text-sm font-bold transition ${
                         selectedItem
                           ? "border-[#1668E8] bg-[#1668E8] text-white"
@@ -167,10 +142,6 @@ export function CambiaTaglia({
                 })}
               </div>
 
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                Le taglie senza disponibilità non sono selezionabili.
-              </p>
-
               <Button
                 type="button"
                 disabled={
@@ -181,12 +152,33 @@ export function CambiaTaglia({
                 onClick={salva}
                 className="mt-5 h-14 w-full rounded-2xl bg-[#1668E8] text-base font-semibold"
               >
-                {saving ? "Aggiornamento..." : "Conferma taglia"}
+                {saving
+                  ? "Aggiornamento..."
+                  : "Conferma taglia"}
               </Button>
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    );
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={apri}
+        disabled={quantitaConsegnata > 0}
+        className={`flex min-h-[40px] w-full items-center justify-center rounded-xl px-2 text-base font-bold transition ${
+          quantitaConsegnata > 0
+            ? "cursor-not-allowed bg-slate-200 text-slate-400 dark:bg-slate-800"
+            : "bg-black text-white active:scale-95"
+        }`}
+      >
+        {taglia ?? "Unica"}
+      </button>
+
+      {popup}
     </>
   );
 }
