@@ -386,7 +386,7 @@ export default function NuovoOrdinePage() {
 
         const taglia =
           isBorsone || isZainetto
-            ? sceltaBorsa
+            ? null
             : riga.tipo_taglia === "abbigliamento"
               ? tagliaKit
               : riga.tipo_taglia === "calzettoni"
