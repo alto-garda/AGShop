@@ -66,7 +66,7 @@ export default function RootLayout({
               </PageTransition>
             </div>
 
-            <div className="shrink-0">
+            <div className="shrink-0 pb-[env(safe-area-inset-bottom)]">
               <Footer />
             </div>
 

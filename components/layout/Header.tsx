@@ -31,7 +31,7 @@ export function Header() {
         : pages[pathname] ?? "AGShop";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-[#1668E8] px-4 py-2 text-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-[#1668E8] px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] text-white shadow-sm">
       <div className="relative flex items-center justify-between">
 
         <Image
