@@ -129,7 +129,7 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-red-600" />
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  In Attesa
+                  Da Processare
                 </span>
               </div>
 
